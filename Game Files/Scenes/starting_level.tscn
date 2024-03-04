@@ -1,6 +1,12 @@
-[gd_scene load_steps=2 format=3 uid="uid://chx1hqcjahtsw"]
+[gd_scene load_steps=3 format=3 uid="uid://chx1hqcjahtsw"]
 
 [ext_resource type="Script" path="res://Scripts/starting_level.gd" id="1_6muxn"]
+[ext_resource type="Texture2D" uid="uid://be3703as1ofka" path="res://Sprites/size_sketch.png" id="2_jqngr"]
 
 [node name="Starting Level" type="Node2D"]
 script = ExtResource("1_6muxn")
+
+[node name="SizeSketch" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(160, 144)
+texture = ExtResource("2_jqngr")
