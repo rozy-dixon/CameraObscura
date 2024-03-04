@@ -13,3 +13,10 @@ config_version=5
 config/name="Camera Obscura"
 config/features=PackedStringArray("4.2", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=320
+window/size/viewport_height=288
+window/stretch/mode="viewport"
+window/stretch/aspect="expand"
