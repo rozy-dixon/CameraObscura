@@ -1,12 +1,18 @@
-[gd_scene load_steps=3 format=3 uid="uid://chx1hqcjahtsw"]
+[gd_scene load_steps=5 format=3 uid="uid://chx1hqcjahtsw"]
 
+[ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_2j0ki"]
 [ext_resource type="Script" path="res://Scripts/starting_level.gd" id="1_6muxn"]
 [ext_resource type="Texture2D" uid="uid://be3703as1ofka" path="res://Sprites/size_sketch.png" id="2_jqngr"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lssf5"]
+shader = ExtResource("1_2j0ki")
+
 [node name="Starting Level" type="Node2D"]
+material = SubResource("ShaderMaterial_lssf5")
 script = ExtResource("1_6muxn")
 
 [node name="SizeSketch" type="Sprite2D" parent="."]
 texture_filter = 1
+use_parent_material = true
 position = Vector2(160, 144)
 texture = ExtResource("2_jqngr")
