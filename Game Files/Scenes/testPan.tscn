@@ -1,0 +1,28 @@
+[gd_scene load_steps=6 format=3 uid="uid://c1qaixvcfndjb"]
+
+[ext_resource type="Shader" path="res://Shaders/Pan.gdshader" id="1_cepfa"]
+[ext_resource type="Texture2D" uid="uid://bjcbvtrxgep7u" path="res://icon.svg" id="2_8ixmx"]
+[ext_resource type="Script" path="res://Scripts/panScript.gd" id="3_4cgsb"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_iqmq3"]
+shader = ExtResource("1_cepfa")
+shader_parameter/tiling = Vector2(1, 1)
+shader_parameter/offset = Vector2(-31.81, -4.66)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_2dubp"]
+lightmap_size_hint = Vector2i(24, 28)
+add_uv2 = true
+size = Vector2(4.48, 5.21)
+center_offset = Vector3(0.1, 0.17, -0.18)
+orientation = 2
+
+[node name="Node2D" type="Node2D"]
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+texture_repeat = 2
+material = SubResource("ShaderMaterial_iqmq3")
+position = Vector2(180, 161)
+scale = Vector2(83.1202, -56.6873)
+mesh = SubResource("PlaneMesh_2dubp")
+texture = ExtResource("2_8ixmx")
+script = ExtResource("3_4cgsb")
