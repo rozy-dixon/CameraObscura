@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://chx1hqcjahtsw"]
+[gd_scene load_steps=6 format=3 uid="uid://chx1hqcjahtsw"]
 
 [ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_2j0ki"]
 [ext_resource type="Script" path="res://Scripts/starting_level.gd" id="1_6muxn"]
 [ext_resource type="Texture2D" uid="uid://be3703as1ofka" path="res://Sprites/size_sketch.png" id="2_jqngr"]
+[ext_resource type="PackedScene" uid="uid://320a014lbnri" path="res://Scenes/main_character.tscn" id="4_6pbh5"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lssf5"]
 shader = ExtResource("1_2j0ki")
@@ -16,3 +17,6 @@ texture_filter = 1
 use_parent_material = true
 position = Vector2(160, 144)
 texture = ExtResource("2_jqngr")
+
+[node name="main character" parent="." instance=ExtResource("4_6pbh5")]
+position = Vector2(120, 90)
