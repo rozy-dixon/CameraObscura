@@ -8,7 +8,7 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	var speedX:Vector2 = Vector2(0.0,0)  
+	var speedX:Vector2 = Vector2(1.0,0)  
 	var baseMovement:Vector2 = Vector2(0.005, 0)
 	var move:Vector2 = speedX * baseMovement
 	var currOffset = get_material().get_shader_parameter("offset")

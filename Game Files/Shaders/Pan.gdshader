@@ -4,7 +4,7 @@ uniform vec2 offset;
 void vertex() {
 	// Called for every vertex the material is visible on.
 		
-		UV = UV * tiling + offset;
+		UV = UV + offset;
 }
 
 void fragment() {
