@@ -98,5 +98,6 @@ sources/3 = SubResource("TileSetAtlasSource_2y8ar")
 
 [node name="TileMap" type="TileMap"]
 z_index = -1000
+use_parent_material = true
 tile_set = SubResource("TileSet_m28sh")
 format = 2
