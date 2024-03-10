@@ -3,7 +3,7 @@ extends CharacterBody2D
 # Put character's movement attributes in the inspector so they can be modified
 @export var push_force  = 1000
 @export var walk_speed  = 40.0
-
+@export var diagonal_movement = false;
 # Function that runs on physics tick, rather than every frame.
 func _physics_process(delta):
 	# Process character movement input
@@ -27,15 +27,18 @@ func push():
 
 func movement_input():
 	# Store the input from the arrow keys into a 2D vector, Ex: (+/-x, +/-y), (1,0) = left, (-1,0) = right, (0,1) = up, (0,-1) = down, (+/-0.70707..., +/-0.70707...) = diagonal, (0,0) = idle
-	var direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
-	print(direction)
+	var direction = Input.get_vector("Move Left", "Move Right", "Move Up", "Move Down")
+	#print(direction)
 	# If we are not idle
+	
 	if(direction):
 		# Apply velocity by multiplying the movement vector by a constant, our attribute, walk_speed
-		velocity = direction * walk_speed
-		print(direction * walk_speed)
+		
+		if (abs(direction.x) == 1 or abs(direction.y) == 1) or diagonal_movement:
+			velocity = direction * walk_speed
+		#print(direction * walk_speed)
 		# If we are moving in the x direction
-		if direction.x:
+		if (direction.x and !direction.y) or (diagonal_movement and direction.x):
 			# Change to the horizontal sprite
 			$AnimatedSprite2D.frame = 2
 			# If we are moving left, flip the sprite horizontally
@@ -44,7 +47,7 @@ func movement_input():
 			else:
 				$AnimatedSprite2D.flip_h = false
 		# If we are moving in the y direction
-		if direction.y:
+		if (direction.y and !direction.x) or (diagonal_movement and direction.y): 
 			# If we are moving down, use the downward facing sprite, if we are moving up, use the upward facing sprite
 			if direction.y < 0:
 				$AnimatedSprite2D.frame = 1
