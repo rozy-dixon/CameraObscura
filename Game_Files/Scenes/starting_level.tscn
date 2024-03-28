@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://chx1hqcjahtsw"]
+[gd_scene load_steps=10 format=3 uid="uid://chx1hqcjahtsw"]
 
 [ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_2j0ki"]
 [ext_resource type="Script" path="res://Scripts/starting_level.gd" id="1_6muxn"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://320a014lbnri" path="res://Scenes/main_character.tscn" id="4_6pbh5"]
 [ext_resource type="PackedScene" uid="uid://bm30q8mdyqi4e" path="res://Scenes/BaseBetaTileset.tscn" id="5_ucaeq"]
 [ext_resource type="Script" path="res://Scenes/Tiles.gd" id="7_46teb"]
+[ext_resource type="PackedScene" uid="uid://c2c50xtgaqi0p" path="res://Scenes/photo.tscn" id="7_lismb"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lssf5"]
 shader = ExtResource("1_2j0ki")
@@ -49,3 +50,7 @@ script = SubResource("GDScript_ckxuf")
 
 [node name="Tiles" type="Node" parent="."]
 script = ExtResource("7_46teb")
+
+[node name="Photo" parent="." instance=ExtResource("7_lismb")]
+visible = false
+position = Vector2(150, 144)

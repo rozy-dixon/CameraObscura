@@ -8,16 +8,16 @@ extends CharacterBody2D
 @export var facing : String = "NONE"
 var tile_index : int
 var tile_array 
+
 const MAX_X : int = 300
 const MAX_Y : int = 270
 const MIN_X : int = 20
 const MIN_Y : int = 18
-# Function that runs on physics tick, rather than every frame.
 
 
 var tilemap
 func atlas_to_arr(destination_tile):
-	print(destination_tile)
+	# print(destination_tile)
 	var t = destination_tile.y * 6 + destination_tile.x
 	var dest_tile_obj = tile_array[t]
 	return dest_tile_obj
@@ -43,8 +43,10 @@ func _physics_process(delta):
 		
 		#print(tilemap.get_cell_atlas_coords(-1,tile_pos))
 		# Process character movement input
-		
-		picture()
+		if(Input.is_action_just_pressed("Take Picture")) && $"../Photo".visible == false:
+			picture()
+		elif Input.is_action_just_pressed("Take Picture") && $"../Photo".visible == true:
+			$"../Photo".visible = false
 		if(!jumpy_movement):
 			movement_input()
 			# Push a RigidBody2D node if we are colliding with one
@@ -53,6 +55,22 @@ func _physics_process(delta):
 			move_and_slide()
 		else:
 			hop()
+			look()
+func look():
+	if(Input.is_action_just_pressed("Look Left")):
+		facing = "WEST"
+		$AnimatedSprite2D.frame = 2
+		$AnimatedSprite2D.flip_h = true
+	if(Input.is_action_just_pressed("Look Right")):
+		facing = "EAST"
+		$AnimatedSprite2D.frame = 2
+		$AnimatedSprite2D.flip_h = false
+	if(Input.is_action_just_pressed("Look Up")):
+		facing = "NORTH"
+		$AnimatedSprite2D.frame = 1
+	if(Input.is_action_just_pressed("Look Down")):
+		facing = "SOUTH"
+		$AnimatedSprite2D.frame = 0
 func hop():
 		var tile_pos = tilemap.local_to_map(position)
 		var world_pos = tilemap.map_to_local(tile_pos)
@@ -88,17 +106,18 @@ func hop():
 func picture():
 	var curr_tile = tile_array[tile_index]
 	#print("curr tile: ", curr_tile.exits)
+	#print("FACING: ", facing)
 	#print("Curr tile & 1 = ", curr_tile.exits & 1)
 	#print("Curr tile & 2 = ", curr_tile.exits & 2)
-	#if (curr_tile.exits & 2 && curr_tile.exits & 1):
-		#if(facing == "WEST" || facing == "EAST"):
-			##print("Show Picture")
-	#if (curr_tile.exits & 8 && curr_tile.exits & 4):
-		#if(facing == "NORTH" || facing == "SOUTH"):
-			##print("Show Picture")
+	#print("Curr tile & 4 = ", curr_tile.exits & 4)
+	#print("Curr tile & 8 = ", curr_tile.exits & 8)
+	if (curr_tile.exits & 2 && facing == "WEST" || curr_tile.exits & 1 && facing == "EAST"):
+		$"../Photo".visible = true
+		##print("Show Picture")
+	if (curr_tile.exits & 8 && facing == "NORTH" || curr_tile.exits & 4 && facing == "SOUTH"):
+		$"../Photo".visible = true
+		##print("Show Picture")
 		
-	
-	pass
 func push():
 	# If we are moving
 	if $".".move_and_slide():
