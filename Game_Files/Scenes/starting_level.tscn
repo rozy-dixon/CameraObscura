@@ -1,13 +1,33 @@
-[gd_scene load_steps=7 format=3 uid="uid://chx1hqcjahtsw"]
+[gd_scene load_steps=9 format=3 uid="uid://chx1hqcjahtsw"]
 
 [ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_2j0ki"]
 [ext_resource type="Script" path="res://Scripts/starting_level.gd" id="1_6muxn"]
 [ext_resource type="Texture2D" uid="uid://be3703as1ofka" path="res://Sprites/size_sketch.png" id="2_jqngr"]
 [ext_resource type="PackedScene" uid="uid://320a014lbnri" path="res://Scenes/main_character.tscn" id="4_6pbh5"]
 [ext_resource type="PackedScene" uid="uid://bm30q8mdyqi4e" path="res://Scenes/BaseBetaTileset.tscn" id="5_ucaeq"]
+[ext_resource type="Script" path="res://Scenes/Tiles.gd" id="7_46teb"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lssf5"]
 shader = ExtResource("1_2j0ki")
+
+[sub_resource type="GDScript" id="GDScript_ckxuf"]
+script/source = "extends Node2D
+#class_name Tile
+#var atlasCoords : Vector2
+#var exits : int
+# Top Bottom Left Right 
+# 1 is open
+# 0 is closed
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	pass
+"
 
 [node name="Starting Level" type="Node2D"]
 material = SubResource("ShaderMaterial_lssf5")
@@ -21,7 +41,11 @@ position = Vector2(160, 144)
 texture = ExtResource("2_jqngr")
 
 [node name="main character" parent="." instance=ExtResource("4_6pbh5")]
-position = Vector2(120, 90)
+position = Vector2(122, 90)
 
 [node name="TileMap" parent="." instance=ExtResource("5_ucaeq")]
-layer_0/tile_data = PackedInt32Array(196611, 3, 0, 196612, 3, 0, 262147, 3, 0, 262148, 3, 0, 327683, 3, 0, 327684, 3, 0, 262146, 3, 0, 196610, 3, 0, 131075, 3, 0, 131076, 3, 0, 196613, 3, 0, 262149, 3, 0, 327682, 65539, 0, 327685, 65539, 1, 393218, 131075, 1, 131077, 131075, 0, 393220, 196611, 1, 458756, 327683, 1, 196614, 196611, 0, 196615, 262147, 0, 196609, 262147, 1, 65540, 327683, 0, 131074, 3, 2, 262150, 65539, 2, 131078, 131075, 1, 393217, 131075, 2, 458752, 131075, 2, 458753, 196611, 0, 458754, 196611, 0, 458755, 262147, 0, 393219, 196611, 2, 393216, 327683, 0, 327680, 131075, 2, 262144, 65539, 0, 196608, 196611, 1, 131072, 196611, 1, 65536, 196611, 1, 0, 3, 2, 1, 196611, 0, 2, 196611, 0, 3, 131075, 0, 4, 196611, 0, 5, 262147, 0, 6, 3, 2, 7, 65539, 2, 65537, 3, 2, 65538, 262147, 0, 65539, 196611, 1, 131073, 327683, 1, 65541, 262147, 1, 65542, 3, 0, 65543, 65539, 1, 131079, 196611, 2, 262151, 327683, 0, 327687, 65539, 1, 393223, 196611, 1, 458759, 327683, 1, 458758, 196611, 2, 458757, 131075, 2, 393221, 196611, 1, 393222, 196611, 1, 327686, 65539, 0, 327681, 65539, 1, 262145, 131075, 0)
+layer_0/tile_data = PackedInt32Array(458759, 327683, 0, 393223, 196611, 0, 327687, 65539, 0, 262151, 65539, 0, 196615, 196611, 0, 131079, 65539, 0, 65543, 196611, 0, 7, 196611, 1, 458758, 3, 2, 393222, 196611, 2, 327686, 262147, 0, 262150, 131075, 1, 196614, 196611, 2, 131078, 3, 2, 65542, 196611, 2, 6, 3, 2, 458757, 262147, 0, 393221, 65539, 0, 327685, 131075, 0, 262149, 3, 0, 196613, 65539, 0, 131077, 3, 0, 65541, 196611, 0, 5, 131075, 1, 458756, 262147, 0, 393220, 131075, 1, 327684, 196611, 2, 262148, 262147, 0, 196612, 131075, 1, 131076, 131075, 2, 65540, 196611, 2, 4, 3, 2, 458755, 262147, 0, 393219, 131075, 0, 327683, 65539, 0, 262147, 3, 0, 196611, 3, 0, 131075, 65539, 0, 65539, 65539, 0, 3, 131075, 1, 458754, 3, 2, 393218, 196611, 2, 327682, 262147, 0, 262146, 131075, 0, 196610, 3, 0, 131074, 131075, 0, 65538, 3, 0, 2, 131075, 1, 458753, 3, 2, 393217, 196611, 2, 327681, 3, 2, 262145, 196611, 2, 196609, 3, 2, 131073, 196611, 2, 65537, 262147, 0, 1, 131075, 1, 458752, 3, 1, 393216, 196611, 0, 327680, 131075, 0, 262144, 196611, 0, 196608, 131075, 0, 131072, 196611, 0, 65536, 131075, 0, 0, 262147, 1)
+script = SubResource("GDScript_ckxuf")
+
+[node name="Tiles" type="Node" parent="."]
+script = ExtResource("7_46teb")

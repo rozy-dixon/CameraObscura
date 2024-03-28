@@ -4,15 +4,54 @@ extends CharacterBody2D
 @export var push_force  = 1000
 @export var walk_speed  = 40.0
 @export var diagonal_movement = false;
+@export var facing : String = "NONE"
+var tile_index : int
+var tile_array 
 # Function that runs on physics tick, rather than every frame.
+
+
+var tilemap
+
+func _ready():
+	tile_array = $"../Tiles".tiles
+	tilemap = $"../TileMap"  # Replace "TileMap" with the name of your TileMap node
+	facing = "SOUTH"
 func _physics_process(delta):
-	# Process character movement input
-	movement_input()
-	# Push a RigidBody2D node if we are colliding with one
-	push()
-	# Apply the calculated physics to our character for this tick
-	move_and_slide()
+	if position:
+		var tile_pos = tilemap.local_to_map(position)
+		#var atlas_pos = tilemap.map_to_local(position)
+		#print("Tile Position: ", tile_pos)
+		var atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
+		print("Tile Atlas Position: ", atlas_pos)
+		tile_index = atlas_pos.y * 6 + atlas_pos.x
+		#print(index)
+		print(tile_array[tile_index].desc, " facing ", facing)
+		#print(facing)
+		
+		#print(tilemap.get_cell_atlas_coords(-1,tile_pos))
+		# Process character movement input
+		
+		picture()
+		movement_input()
+		# Push a RigidBody2D node if we are colliding with one
+		push()
+		# Apply the calculated physics to our character for this tick
+		move_and_slide()
+# Picture Snapping code
+func picture():
+	var curr_tile = tile_array[tile_index]
+	print("curr tile: ", curr_tile.exits)
+	print("Curr tile & 1 = ", curr_tile.exits & 1)
+	print("Curr tile & 2 = ", curr_tile.exits & 2)
+	if (curr_tile.exits & 2 && curr_tile.exits & 1):
+		if(facing == "WEST" || facing == "EAST"):
+			print("Show Picture")
+	if (curr_tile.exits & 8 && curr_tile.exits & 4):
+		if(facing == "NORTH" || facing == "SOUTH"):
+			print("Show Picture")
+		
 	
+	pass
 func push():
 	# If we are moving
 	if $".".move_and_slide():
@@ -44,15 +83,19 @@ func movement_input():
 			# If we are moving left, flip the sprite horizontally
 			if direction.x < 0:
 				$AnimatedSprite2D.flip_h = true
+				facing = "WEST"
 			else:
 				$AnimatedSprite2D.flip_h = false
+				facing = "EAST"
 		# If we are moving in the y direction
 		if (direction.y and !direction.x) or (diagonal_movement and direction.y): 
 			# If we are moving down, use the downward facing sprite, if we are moving up, use the upward facing sprite
 			if direction.y < 0:
 				$AnimatedSprite2D.frame = 1
+				facing = "NORTH"
 			else:
 				$AnimatedSprite2D.frame = 0
+				facing = "SOUTH"
 	# If we are not moving, linearly interpolate (lerp/smoothly change) our velocity to zero so the stopping feels like decelerating rather than rigidly stopping
 	else:
 		velocity.x = move_toward(velocity.x, 0, walk_speed)
