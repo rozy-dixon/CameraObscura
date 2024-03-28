@@ -4,51 +4,98 @@ extends CharacterBody2D
 @export var push_force  = 1000
 @export var walk_speed  = 40.0
 @export var diagonal_movement = false;
+@export var jumpy_movement = true;
 @export var facing : String = "NONE"
 var tile_index : int
 var tile_array 
+const MAX_X : int = 300
+const MAX_Y : int = 270
+const MIN_X : int = 20
+const MIN_Y : int = 18
 # Function that runs on physics tick, rather than every frame.
 
 
 var tilemap
-
+func atlas_to_arr(destination_tile):
+	print(destination_tile)
+	var t = destination_tile.y * 6 + destination_tile.x
+	var dest_tile_obj = tile_array[t]
+	return dest_tile_obj
+	
+	
 func _ready():
 	tile_array = $"../Tiles".tiles
 	tilemap = $"../TileMap"  # Replace "TileMap" with the name of your TileMap node
 	facing = "SOUTH"
+	position = tilemap.map_to_local(Vector2(0,0))
 func _physics_process(delta):
 	if position:
 		var tile_pos = tilemap.local_to_map(position)
-		#var atlas_pos = tilemap.map_to_local(position)
+		var world_pos = tilemap.map_to_local(tile_pos)
 		#print("Tile Position: ", tile_pos)
+		#print("World Position", world_pos)
 		var atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
-		print("Tile Atlas Position: ", atlas_pos)
+		#print("Tile Atlas Position: ", atlas_pos)
 		tile_index = atlas_pos.y * 6 + atlas_pos.x
 		#print(index)
-		print(tile_array[tile_index].desc, " facing ", facing)
+		#print(tile_array[tile_index].desc, " facing ", facing)
 		#print(facing)
 		
 		#print(tilemap.get_cell_atlas_coords(-1,tile_pos))
 		# Process character movement input
 		
 		picture()
-		movement_input()
-		# Push a RigidBody2D node if we are colliding with one
-		push()
-		# Apply the calculated physics to our character for this tick
-		move_and_slide()
+		if(!jumpy_movement):
+			movement_input()
+			# Push a RigidBody2D node if we are colliding with one
+			push()
+			# Apply the calculated physics to our character for this tick
+			move_and_slide()
+		else:
+			hop()
+func hop():
+		var tile_pos = tilemap.local_to_map(position)
+		var world_pos = tilemap.map_to_local(tile_pos)
+		var atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
+		var destination_tile
+		if Input.is_action_just_pressed("Move Left") && world_pos.x > MIN_X:
+			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(-1,0))
+			var curr = atlas_to_arr(destination_tile)
+			if curr.exits & 0b0001:
+				position = tilemap.map_to_local(tile_pos + Vector2i(-1,0))
+
+		elif Input.is_action_just_pressed("Move Right") && world_pos.x < MAX_X:
+			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(1,0))
+			var curr = atlas_to_arr(destination_tile)
+			if curr.exits & 0b0010:
+				position = tilemap.map_to_local(tile_pos + Vector2i(1,0))
+
+			
+		if Input.is_action_just_pressed("Move Up") && world_pos.y > MIN_Y:
+			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,-1))
+			var curr = atlas_to_arr(destination_tile)
+			if curr.exits & 0b0100:
+				position = tilemap.map_to_local(tile_pos + Vector2i(0,-1))
+
+
+		elif Input.is_action_just_pressed("Move Down") && world_pos.y < MAX_Y:
+			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,1))
+			var curr = atlas_to_arr(destination_tile)
+			if curr.exits & 0b1000:
+				position = tilemap.map_to_local(tile_pos + Vector2i(0,1))
+
 # Picture Snapping code
 func picture():
 	var curr_tile = tile_array[tile_index]
-	print("curr tile: ", curr_tile.exits)
-	print("Curr tile & 1 = ", curr_tile.exits & 1)
-	print("Curr tile & 2 = ", curr_tile.exits & 2)
-	if (curr_tile.exits & 2 && curr_tile.exits & 1):
-		if(facing == "WEST" || facing == "EAST"):
-			print("Show Picture")
-	if (curr_tile.exits & 8 && curr_tile.exits & 4):
-		if(facing == "NORTH" || facing == "SOUTH"):
-			print("Show Picture")
+	#print("curr tile: ", curr_tile.exits)
+	#print("Curr tile & 1 = ", curr_tile.exits & 1)
+	#print("Curr tile & 2 = ", curr_tile.exits & 2)
+	#if (curr_tile.exits & 2 && curr_tile.exits & 1):
+		#if(facing == "WEST" || facing == "EAST"):
+			##print("Show Picture")
+	#if (curr_tile.exits & 8 && curr_tile.exits & 4):
+		#if(facing == "NORTH" || facing == "SOUTH"):
+			##print("Show Picture")
 		
 	
 	pass

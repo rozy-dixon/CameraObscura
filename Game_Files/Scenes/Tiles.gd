@@ -1,7 +1,7 @@
 extends Node
 
 class_name T
-var atlasCoords : Vector2
+var atlasCoords : Vector2i
 var exits : int
 var desc : String
 # I'll change this if the zero offset makes this confusing.
@@ -16,8 +16,8 @@ func _ready():
 	for i in range(6):
 		for j in range(3):
 				var curr = T.new()
-				#curr.atlasCoords.x = i
-				#curr.atlasCoords.y = j
+				curr.atlasCoords.x = i
+				curr.atlasCoords.y = j
 				curr.exits = exits
 				# Binary number corresponds to top, bottom, left, right exits
 				match curr.exits:
