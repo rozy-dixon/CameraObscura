@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2c50xtgaqi0p"]
+
+[ext_resource type="Texture2D" uid="uid://d2or1hl4ptqyi" path="res://Sprites/Photos/test_poloroid.png" id="1_au0hi"]
+
+[node name="Photo" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_au0hi")
