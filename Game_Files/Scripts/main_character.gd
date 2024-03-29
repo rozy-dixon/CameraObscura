@@ -16,6 +16,8 @@ const MIN_Y : int = 18
 
 
 var tilemap
+
+# Takes in atlas coords, returns tile object.
 func atlas_to_arr(destination_tile):
 	# print(destination_tile)
 	var t = destination_tile.y * 6 + destination_tile.x

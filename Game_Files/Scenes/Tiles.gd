@@ -8,11 +8,11 @@ var desc : String
 const TILE_MAX : int = 16
 
 #var tile = preload("res://Scenes/Tile.tscn")
-
+# Every tile's index in the array, is also its exits.
 @export var tiles = []
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var exits = 15
+	var exits = 0
 	for i in range(6):
 		for j in range(3):
 				var curr = T.new()
@@ -53,7 +53,7 @@ func _ready():
 						curr.desc = "Left-Facing T"
 					0b1111:
 						curr.desc = "Cross Tile"
-				exits-=1
+				exits+=1
 				tiles.append(curr)
 				#$".".add_child(curr)
 pass # Replace with function body.
