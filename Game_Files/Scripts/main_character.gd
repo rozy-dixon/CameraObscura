@@ -9,17 +9,19 @@ extends CharacterBody2D
 var tile_index : int
 var tile_array 
 
+# The boundaries of the screen, in the bounds of the tileset.
 const MAX_X : int = 300
 const MAX_Y : int = 270
 const MIN_X : int = 20
 const MIN_Y : int = 18
 
+var unknown_tile = Vector2i(-1,-1)
 
 var tilemap
 
 # Takes in atlas coords, returns tile object.
 func atlas_to_arr(destination_tile):
-	# print(destination_tile)
+	print(destination_tile)
 	var t = destination_tile.y * 6 + destination_tile.x
 	var dest_tile_obj = tile_array[t]
 	return dest_tile_obj
@@ -78,48 +80,82 @@ func hop():
 		var world_pos = tilemap.map_to_local(tile_pos)
 		var atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
 		var destination_tile
+		var possible_jump : bool = true;
 		if Input.is_action_just_pressed("Move Left") && world_pos.x > MIN_X:
 			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(-1,0))
+			possible_jump = destination_tile != unknown_tile
 			var curr = atlas_to_arr(destination_tile)
-			if curr.exits & 0b0001:
+			if curr.exits & 0b0001 && possible_jump:
 				position = tilemap.map_to_local(tile_pos + Vector2i(-1,0))
 
 		elif Input.is_action_just_pressed("Move Right") && world_pos.x < MAX_X:
 			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(1,0))
+			possible_jump = destination_tile != unknown_tile
 			var curr = atlas_to_arr(destination_tile)
-			if curr.exits & 0b0010:
+			if curr.exits & 0b0010 && possible_jump:
 				position = tilemap.map_to_local(tile_pos + Vector2i(1,0))
 
 			
 		if Input.is_action_just_pressed("Move Up") && world_pos.y > MIN_Y:
 			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,-1))
+			possible_jump = destination_tile != unknown_tile
 			var curr = atlas_to_arr(destination_tile)
-			if curr.exits & 0b0100:
+			if curr.exits & 0b0100 && possible_jump:
 				position = tilemap.map_to_local(tile_pos + Vector2i(0,-1))
 
 
 		elif Input.is_action_just_pressed("Move Down") && world_pos.y < MAX_Y:
 			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,1))
+			possible_jump = destination_tile != unknown_tile
 			var curr = atlas_to_arr(destination_tile)
-			if curr.exits & 0b1000:
+			if curr.exits & 0b1000 && possible_jump:
 				position = tilemap.map_to_local(tile_pos + Vector2i(0,1))
 
 # Picture Snapping code
 func picture():
+	var tile_pos = tilemap.local_to_map(position)
 	var curr_tile = tile_array[tile_index]
+	
 	#print("curr tile: ", curr_tile.exits)
 	#print("FACING: ", facing)
 	#print("Curr tile & 1 = ", curr_tile.exits & 1)
 	#print("Curr tile & 2 = ", curr_tile.exits & 2)
 	#print("Curr tile & 4 = ", curr_tile.exits & 4)
 	#print("Curr tile & 8 = ", curr_tile.exits & 8)
-	if (curr_tile.exits & 2 && facing == "WEST" || curr_tile.exits & 1 && facing == "EAST"):
-		$"../Photo".visible = true
-		##print("Show Picture")
-	if (curr_tile.exits & 8 && facing == "NORTH" || curr_tile.exits & 4 && facing == "SOUTH"):
-		$"../Photo".visible = true
-		##print("Show Picture")
-		
+	#if (curr_tile.exits & 2 && facing == "WEST" || curr_tile.exits & 1 && facing == "EAST"):
+		#$"../Photo".visible = true
+		###print("Show Picture")
+	#if (curr_tile.exits & 8 && facing == "NORTH" || curr_tile.exits & 4 && facing == "SOUTH"):
+		#$"../Photo".visible = true
+		###print("Show Picture")
+	var destination_tile : Vector2i
+	if facing == "NORTH":
+		destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,-1))
+		var world_pos = tilemap.map_to_local(destination_tile)
+		if world_pos.y > -18 && destination_tile == unknown_tile:
+			$"../Photo".visible = true
+		pass
+	if facing == "SOUTH":
+		destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,1))
+		var world_pos = tilemap.map_to_local(destination_tile)
+		print(world_pos.y)
+		print(destination_tile == unknown_tile)
+		if world_pos.y >= -18 && destination_tile == unknown_tile:
+			$"../Photo".visible = true
+		pass
+	if facing == "EAST":
+		destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(1,0))
+		var world_pos = tilemap.map_to_local(destination_tile)
+		if world_pos.y > -18 && destination_tile == unknown_tile:
+			$"../Photo".visible = true
+		pass
+	if facing == "WEST":
+		destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(-1,0))
+		var world_pos = tilemap.map_to_local(destination_tile)
+		if world_pos.y > -18 && destination_tile == unknown_tile:
+			$"../Photo".visible = true
+		pass
+	
 func push():
 	# If we are moving
 	if $".".move_and_slide():
