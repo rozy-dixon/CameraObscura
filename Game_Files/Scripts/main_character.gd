@@ -15,7 +15,7 @@ const MIN_X : int = 20
 const MIN_Y : int = 18
 
 # The tilemap in the main scene
-var tilemap
+var tilemap : TileMap
 # Array of Tile Objects that have exit properties
 var tile_array 
 
@@ -34,10 +34,25 @@ var tile_obj
 # Keep track of what defines a Tile that is not actually placed
 var unknown_tile = Vector2i(-1,-1)
 
+# Convert integer to binary string
+func to_binary(num):
+	var retval = ""
+	var digit : String
+	#print("Converting ", num, " to binary")
+	while num:
+		digit = str(num % 2)
+		num /= 2
+		# Prepend
+		retval = digit + retval
+	# Pad if needed
+	while retval.length() < 4:
+		retval = "0" + retval
+	#print("Result is: ", retval)
+	return retval
 
 # Takes in atlas coords, returns tile object.
 func atlas_to_arr(destination_tile):
-	print(destination_tile)
+	#print(destination_tile)
 	var t = destination_tile.y * 6 + destination_tile.x
 	var dest_tile_obj = tile_array[t]
 	return dest_tile_obj
@@ -48,6 +63,12 @@ func _ready():
 	tilemap = $"../TileMap"  # Replace "TileMap" with the name of your TileMap node
 	facing = DIR.SOUTH
 	position = tilemap.map_to_local(Vector2(0,0))
+	#tilemap.set_cell(-1,Vector2i(0,0),-1,0)
+	var tile_map_layer = -1
+	var tile_map_cell_position = Vector2i(0,0)
+	var tile_map_cell_source_id = tilemap.get_cell_source_id(tile_map_layer, tile_map_cell_position)
+	var tile_map_cell_atlas_coords = Vector2i(0,0)
+	tilemap.set_cell(tile_map_layer, tile_map_cell_position, tile_map_cell_source_id, tile_map_cell_atlas_coords)
 
 func _physics_process(delta):
 	if position:
@@ -56,7 +77,7 @@ func _physics_process(delta):
 		atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
 		tile_index = atlas_pos.y * 6 + atlas_pos.x
 		#print(tile_array[tile_index].desc, " facing ", facing)
-		
+
 		#print(tilemap.get_cell_atlas_coords(-1,tile_pos))
 		# Process character movement input
 		if(Input.is_action_just_pressed("Take Picture")) && $"../Photo".visible == false:
@@ -132,63 +153,120 @@ func picture():
 	tile_pos = tilemap.local_to_map(position)
 	tile_obj = tile_array[tile_index]
 	
-	var destination_tile : T
-	destination_tile.atlasCoords = tile_obj.atlasCoords
+	# dest_tile = tile position on the game screen
+	var dest_tile : Vector2i
+	dest_tile = tile_pos
 	match facing:
 		DIR.NORTH:
-			destination_tile.atlasCoords += Vector2i(0,-1)
+			dest_tile += Vector2i(0,-1)
 		DIR.SOUTH:
-			destination_tile.atlasCoords += Vector2i(0,1)
+			dest_tile += Vector2i(0,1)
 		DIR.WEST:
-			destination_tile.atlasCoords += Vector2i(-1,0)
+			dest_tile += Vector2i(-1,0)
 		DIR.EAST:
-			destination_tile.atlasCoords += Vector2i(1,0)
+			dest_tile += Vector2i(1,0)
+	# Has this tile already been generated?
+	# dest_atlas = atlas coordinates of the destination
+	var dest_atlas = tilemap.get_cell_atlas_coords(-1,dest_tile) 
+	if(dest_atlas != unknown_tile):
+		return
+	# Is this tile outside of the boundaries of the map?
+	if(dest_tile.x < 0 or dest_tile.y < 0 or dest_tile.x > 7 or dest_tile.y > 7):
+		return
+	
+	# Are we facing an open exit?
+	match facing:
+		DIR.NORTH:
+			if(tile_obj.exits & 0b1000 == 0):
+				return
+		DIR.SOUTH:
+			if(tile_obj.exits & 0b0100 == 0):
+				return
+		DIR.WEST:
+			if(tile_obj.exits & 0b0010 == 0):
+				return
+		DIR.EAST:
+			if(tile_obj.exits & 0b0001 == 0):
+				return
+	
 	# Create random number for exits
-	# Or the correct bit
+	# dest_exits is the exits to be generated for the destination tile
+	var dest_exits = randi_range(0,15)
+	# bin_exits = binary representation of the exit configuration of the destination
+	var bin_exits = to_binary(dest_exits)
+	#print("Before conversion: ", bin_exits) 
+	
+	# Bitwise OR the correct bit
+	match facing:
+		DIR.NORTH:
+			# Facing North, we want something with a Southern exit.
+			dest_exits |= 0b0100
+		DIR.SOUTH:
+			# Facing South, we want something with a Northern exit.
+			dest_exits |= 0b1000
+		DIR.WEST:
+			# Facing West, we want something with a Eastern exit.
+			dest_exits |= 0b0001
+		DIR.EAST:
+			# Facing East, we want something with a Western exit.
+			dest_exits |= 0b0010
+	bin_exits = to_binary(dest_exits)
+	#print("After Conversion: ", bin_exits) 
+	
 	# Grab adjacent tiles
+	# Creating an array of the 8 tiles tile_pos's that surround the destination, we will end up grabbing the tile we are standing on, but that shouldn't
+		# be a problem
+	var adj = []
+	
+	# Top Left
+	var tl = dest_tile + Vector2i(-1,-1)
+	adj.append(tl)
+	
+	# Top
+	var t = dest_tile + Vector2i(0,-1)
+	adj.append(t)
+	
+	# Top Right
+	var tr = dest_tile + Vector2i(1,-1)
+	adj.append(tr)
+	
+	# Middle Left
+	var ml = dest_tile + Vector2i(-1,0)
+	adj.append(ml)
+	
+	# Middle Right
+	var mr = dest_tile + Vector2i(1,0)
+	adj.append(mr)
+	
+	# Bottom Left
+	var bl = dest_tile + Vector2i(-1,1)
+	adj.append(bl)
+	
+	# Bottom
+	var b = dest_tile + Vector2i(0,1)
+	adj.append(b)
+	
+	# Bottom Right
+	var br = dest_tile + Vector2i(1,1)
+	adj.append(br)
+	
 	# Are we on a boundary?
+	for tile in adj:
+		if tile.x < 0:
+			# We need to block the exit in the destination at the West side
+			dest_exits &= 0b1101
+		if tile.x > 7:
+			# Block East side
+			dest_exits &= 0b1110
+		if tile.y < 0:
+			# Block North
+			dest_exits &= 0b0111
+		if tile.y > 7:
+			# Block South
+			dest_exits &= 0b1011
+			
 	# Will this mess up a connection between existing tiles?
 	
-	##print("curr tile: ", tile_obj.exits)
-	##print("FACING: ", facing)
-	##print("Curr tile & 1 = ", tile_obj.exits & 1)
-	##print("Curr tile & 2 = ", tile_obj.exits & 2)
-	##print("Curr tile & 4 = ", tile_obj.exits & 4)
-	##print("Curr tile & 8 = ", tile_obj.exits & 8)
-	##if (tile_obj.exits & 2 && facing == "WEST" || tile_obj.exits & 1 && facing == "EAST"):
-		##$"../Photo".visible = true
-		####print("Show Picture")
-	##if (tile_obj.exits & 8 && facing == "NORTH" || tile_obj.exits & 4 && facing == "SOUTH"):
-		##$"../Photo".visible = true
-		####print("Show Picture")
-	#var destination_tile : Vector2i
-	#if facing == "NORTH":
-		#destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,-1))
-		#var world_pos = tilemap.map_to_local(destination_tile)
-		#if world_pos.y > -18 && destination_tile == unknown_tile:
-			#$"../Photo".visible = true
-		#pass
-	#if facing == "SOUTH":
-		#destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,1))
-		#var world_pos = tilemap.map_to_local(destination_tile)
-		#print(world_pos.y)
-		#print(destination_tile == unknown_tile)
-		#if world_pos.y >= -18 && destination_tile == unknown_tile:
-			#$"../Photo".visible = true
-		#pass
-	#if facing == "EAST":
-		#destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(1,0))
-		#var world_pos = tilemap.map_to_local(destination_tile)
-		#if world_pos.y > -18 && destination_tile == unknown_tile:
-			#$"../Photo".visible = true
-		#pass
-	#if facing == "WEST":
-		#destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(-1,0))
-		#var world_pos = tilemap.map_to_local(destination_tile)
-		#if world_pos.y > -18 && destination_tile == unknown_tile:
-			#$"../Photo".visible = true
-		#pass
-
 # Physics code if we want to push objects.
 func push():
 	# If we are moving
