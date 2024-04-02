@@ -57,25 +57,31 @@ func atlas_to_arr(destination_tile):
 	var dest_tile_obj = tile_array[t]
 	return dest_tile_obj
 	
-	
+	#use Vector2i.(xxx) for direction
+func set_tile(tile_pos, atlas_pos, direction):
+	var tile_map_layer = -1 
+	var tile_data = tilemap.get_cell_tile_data(tile_map_layer, tile_pos)
+	if !tile_data: 
+		var tile_map_cell_source_id = tilemap.get_cell_source_id(tile_map_layer, tile_pos); 
+		var tile_map_cell_atlas_coords = tilemap.get_cell_atlas_coords(tile_map_layer, tile_pos) 
+		var tile_map_cell_alternative = tilemap.get_cell_alternative_tile(tile_map_layer, tile_pos) 
+		var new_tile_map_cell_position =tile_pos + Vector2i.RIGHT 
+		tilemap.set_cell(tile_map_layer, new_tile_map_cell_position, tile_map_cell_source_id, atlas_pos, tile_map_cell_alternative)
+
 func _ready():
 	tile_array = $"../Tiles".tiles
 	tilemap = $"../TileMap"  # Replace "TileMap" with the name of your TileMap node
 	facing = DIR.SOUTH
 	position = tilemap.map_to_local(Vector2(0,0))
-	#tilemap.set_cell(-1,Vector2i(0,0),-1,0)
-	var tile_map_layer = -1
-	var tile_map_cell_position = Vector2i(0,0)
-	var tile_map_cell_source_id = tilemap.get_cell_source_id(tile_map_layer, tile_map_cell_position)
-	var tile_map_cell_atlas_coords = Vector2i(0,0)
-	tilemap.set_cell(tile_map_layer, tile_map_cell_position, tile_map_cell_source_id, tile_map_cell_atlas_coords)
 
 func _physics_process(delta):
 	if position:
+		
 		tile_pos = tilemap.local_to_map(position)
 		world_pos = tilemap.map_to_local(tile_pos)
 		atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
 		tile_index = atlas_pos.y * 6 + atlas_pos.x
+		
 		#print(tile_array[tile_index].desc, " facing ", facing)
 
 		#print(tilemap.get_cell_atlas_coords(-1,tile_pos))
@@ -264,8 +270,15 @@ func picture():
 		if tile.y > 7:
 			# Block South
 			dest_exits &= 0b1011
-			
+	
+	# Grab atlas coords for tile
+	
+	# Use set_tile function I wrote to place tile
+	
 	# Will this mess up a connection between existing tiles?
+	# Could call this recursively to parse surrounding tiles until none of the tiles OR'ed have to change at all.
+	
+	# Show Picture
 	
 # Physics code if we want to push objects.
 func push():
