@@ -57,23 +57,36 @@ func atlas_to_arr(destination_tile):
 	var dest_tile_obj = tile_array[t]
 	return dest_tile_obj
 	
+	# Function places a tile, using tile_pos as the origin
 	#use Vector2i.(xxx) for direction
 func set_tile(tile_pos, atlas_pos, direction):
-	var tile_map_layer = -1 
-	var tile_data = tilemap.get_cell_tile_data(tile_map_layer, tile_pos)
+	print("Setting tile at position ", tile_pos, " from the atlas coordinate ", atlas_pos, " with the direction of ", direction)
+	var tilemap_layer = 0
+	var tile_data = tilemap.get_cell_tile_data(tilemap_layer, tile_pos)
 	if !tile_data: 
-		var tile_map_cell_source_id = tilemap.get_cell_source_id(tile_map_layer, tile_pos); 
-		var tile_map_cell_atlas_coords = tilemap.get_cell_atlas_coords(tile_map_layer, tile_pos) 
-		var tile_map_cell_alternative = tilemap.get_cell_alternative_tile(tile_map_layer, tile_pos) 
-		var new_tile_map_cell_position =tile_pos + Vector2i.RIGHT 
-		tilemap.set_cell(tile_map_layer, new_tile_map_cell_position, tile_map_cell_source_id, atlas_pos, tile_map_cell_alternative)
+		# This was pulling data from the null tile
+		#var tilemap_cell_source_id = tilemap.get_cell_source_id(tilemap_layer, tile_pos); 
+		#var tilemap_cell_alternative = tilemap.get_cell_alternative_tile(tilemap_layer, tile_pos) 
+		var tilemap_cell_source_id = 0
+		var tilemap_cell_alternative = 0
+		tilemap.set_cell(tilemap_layer, tile_pos, tilemap_cell_source_id, atlas_pos, tilemap_cell_alternative)
+		#print("Set cell on layer ", tilemap_layer, " with position ", tile_pos, " with the cell source id of ", tilemap_cell_source_id, " the atlas coords of ", atlas_pos, " and the cell alternative of ", tilemap_cell_alternative)
 
 func _ready():
 	tile_array = $"../Tiles".tiles
 	tilemap = $"../TileMap"  # Replace "TileMap" with the name of your TileMap node
 	facing = DIR.SOUTH
 	position = tilemap.map_to_local(Vector2(0,0))
-
+	#var tilemap_layer = 0 
+	#var tilemap_cell_position = Vector2i(0,0) 
+	#var tile_data = tilemap.get_cell_tile_data(tilemap_layer, tilemap_cell_position)
+	#if tile_data: 
+		#var tilemap_cell_source_id = tilemap.get_cell_source_id(tilemap_layer, tilemap_cell_position); 
+		#var tilemap_cell_atlas_coords = tilemap.get_cell_atlas_coords(tilemap_layer, tilemap_cell_position) 
+		#var tilemap_cell_alternative = tilemap.get_cell_alternative_tile(tilemap_layer, tilemap_cell_position) 
+		#var new_tilemap_cell_position = tilemap_cell_position + Vector2i.RIGHT 
+		#tilemap.set_cell(tilemap_layer, new_tilemap_cell_position, tilemap_cell_source_id, tilemap_cell_atlas_coords, tilemap_cell_alternative)
+		#print("Set cell on layer ", tilemap_layer, " with position ", new_tilemap_cell_position, " with the cell source id of ", tilemap_cell_source_id, " the atlas coords of ", tilemap_cell_atlas_coords, " and the cell alternative of ", tilemap_cell_alternative)
 func _physics_process(delta):
 	if position:
 		
@@ -222,6 +235,9 @@ func picture():
 	# Grab adjacent tiles
 	# Creating an array of the 8 tiles tile_pos's that surround the destination, we will end up grabbing the tile we are standing on, but that shouldn't
 		# be a problem
+	# After thinking about it, I don't think diagonal tiles matter.
+	# I also think that grabbing the origin tile in this can lead to checking tiles that have already been checked which is inefficient.
+	# That being said, I am going to exclude tiles we do not need and recursively call a fixing method on them... eventually if needed.
 	var adj = []
 	
 	# Top Left
@@ -272,13 +288,21 @@ func picture():
 			dest_exits &= 0b1011
 	
 	# Grab atlas coords for tile
+		# Atlas coords are found in the tile_obj that is at tile_array[dest.exits]
+	dest_atlas = tile_array[dest_exits].atlas_coords
 	
 	# Use set_tile function I wrote to place tile
+	print("Placing tile ", tile_array[dest_exits].desc)
+	set_tile(dest_tile,dest_atlas,facing)
 	
 	# Will this mess up a connection between existing tiles?
+	# Should we care? Or is it interesting to the gameplay?
 	# Could call this recursively to parse surrounding tiles until none of the tiles OR'ed have to change at all.
 	
 	# Show Picture
+	# Decide the proper picture to show based on the direction facing and the PLACED tile. We would want to be looking at the unique configuration of the 
+		# tile we generated, not the entrance we are standing in leading to it, that wouldn't mesh with the feeling at all.
+		
 	
 # Physics code if we want to push objects.
 func push():
