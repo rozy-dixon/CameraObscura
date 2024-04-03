@@ -45,7 +45,6 @@ texture = ExtResource("2_jqngr")
 position = Vector2(19, 33)
 
 [node name="TileMap" parent="." instance=ExtResource("5_ucaeq")]
-position = Vector2(2, -1)
 layer_0/tile_data = PackedInt32Array(0, 65536, 1)
 script = SubResource("GDScript_ckxuf")
 
