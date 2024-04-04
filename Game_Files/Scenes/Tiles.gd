@@ -4,6 +4,11 @@ class_name T
 var atlas_coords : Vector2i
 var exits : int
 var desc : String
+
+# Number of rows and columns in the tile atlas
+const ROWS : int = 3
+const COLS : int = 6
+
 # I'll change this if the zero offset makes this confusing.
 const TILE_MAX : int = 16
 
@@ -13,8 +18,8 @@ const TILE_MAX : int = 16
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	var exits = 0
-	for i in range(3):
-		for j in range(6):
+	for i in range(ROWS):
+		for j in range(COLS):
 				var curr = T.new()
 				curr.atlas_coords.x = j
 				curr.atlas_coords.y = i

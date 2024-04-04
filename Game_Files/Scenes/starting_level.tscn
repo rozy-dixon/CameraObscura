@@ -42,7 +42,7 @@ position = Vector2(160, 144)
 texture = ExtResource("2_jqngr")
 
 [node name="main character" parent="." instance=ExtResource("4_6pbh5")]
-position = Vector2(19, 33)
+position = Vector2(20, 18)
 
 [node name="TileMap" parent="." instance=ExtResource("5_ucaeq")]
 layer_0/tile_data = PackedInt32Array(0, 65536, 1)
