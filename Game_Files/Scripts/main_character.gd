@@ -5,6 +5,8 @@ extends CharacterBody2D
 @export var walk_speed  = 40.0
 @export var diagonal_movement = false;
 @export var jumpy_movement = true;
+
+# Handles direction of character
 enum DIR{NORTH, SOUTH, WEST, EAST}
 @export var facing : int = DIR.SOUTH
 
@@ -13,6 +15,9 @@ const MAX_X : int = 300
 const MAX_Y : int = 270
 const MIN_X : int = 20
 const MIN_Y : int = 18
+
+# Size of the rows in our tileset, used to index the array because it is converting 2D to 1D
+const ROW_SIZE : int = 6
 
 # The tilemap in the main scene
 var tilemap : TileMap
@@ -34,6 +39,13 @@ var tile_obj
 # Keep track of what defines a Tile that is not actually placed
 var unknown_tile = Vector2i(-1,-1)
 
+func atlas_to_index(atlas):
+	# Apply a conversion of the components of the atlas Vector2i to return an integer of it's corresponding tile in the array
+	var row = atlas.y
+	var col = atlas.x
+	var index = row * ROW_SIZE + col
+	return index
+
 # Convert integer to binary string
 func to_binary(num):
 	var retval = ""
@@ -53,29 +65,48 @@ func to_binary(num):
 # Takes in atlas coords, returns tile object.
 func atlas_to_arr(destination_tile):
 	#print(destination_tile)
-	var t = destination_tile.y * 6 + destination_tile.x
+	var t = destination_tile.y * ROW_SIZE + destination_tile.x
 	var dest_tile_obj = tile_array[t]
 	return dest_tile_obj
 	
-	
+	# Function places a tile, using tile_pos as the origin
+	#use Vector2i.(xxx) for direction
+func set_tile(tile_pos, atlas_pos, direction):
+	#print("Setting tile at position ", tile_pos, " from the atlas coordinate ", atlas_pos, " with the direction of ", direction)
+	var tilemap_layer = 0
+	var tile_data = tilemap.get_cell_tile_data(tilemap_layer, tile_pos)
+	if !tile_data: 
+		# This was pulling data from the null tile
+		#var tilemap_cell_source_id = tilemap.get_cell_source_id(tilemap_layer, tile_pos); 
+		#var tilemap_cell_alternative = tilemap.get_cell_alternative_tile(tilemap_layer, tile_pos) 
+		var tilemap_cell_source_id = 0
+		var tilemap_cell_alternative = 0
+		tilemap.set_cell(tilemap_layer, tile_pos, tilemap_cell_source_id, atlas_pos, tilemap_cell_alternative)
+		#print("Set cell on layer ", tilemap_layer, " with position ", tile_pos, " with the cell source id of ", tilemap_cell_source_id, " the atlas coords of ", atlas_pos, " and the cell alternative of ", tilemap_cell_alternative)
+
 func _ready():
 	tile_array = $"../Tiles".tiles
-	tilemap = $"../TileMap"  # Replace "TileMap" with the name of your TileMap node
+	tilemap = $"../TileMap" 
 	facing = DIR.SOUTH
 	position = tilemap.map_to_local(Vector2(0,0))
-	#tilemap.set_cell(-1,Vector2i(0,0),-1,0)
-	var tile_map_layer = -1
-	var tile_map_cell_position = Vector2i(0,0)
-	var tile_map_cell_source_id = tilemap.get_cell_source_id(tile_map_layer, tile_map_cell_position)
-	var tile_map_cell_atlas_coords = Vector2i(0,0)
-	tilemap.set_cell(tile_map_layer, tile_map_cell_position, tile_map_cell_source_id, tile_map_cell_atlas_coords)
-
+	#var tilemap_layer = 0 
+	#var tilemap_cell_position = Vector2i(0,0) 
+	#var tile_data = tilemap.get_cell_tile_data(tilemap_layer, tilemap_cell_position)
+	#if tile_data: 
+		#var tilemap_cell_source_id = tilemap.get_cell_source_id(tilemap_layer, tilemap_cell_position); 
+		#var tilemap_cell_atlas_coords = tilemap.get_cell_atlas_coords(tilemap_layer, tilemap_cell_position) 
+		#var tilemap_cell_alternative = tilemap.get_cell_alternative_tile(tilemap_layer, tilemap_cell_position) 
+		#var new_tilemap_cell_position = tilemap_cell_position + Vector2i.RIGHT 
+		#tilemap.set_cell(tilemap_layer, new_tilemap_cell_position, tilemap_cell_source_id, tilemap_cell_atlas_coords, tilemap_cell_alternative)
+		#print("Set cell on layer ", tilemap_layer, " with position ", new_tilemap_cell_position, " with the cell source id of ", tilemap_cell_source_id, " the atlas coords of ", tilemap_cell_atlas_coords, " and the cell alternative of ", tilemap_cell_alternative)
 func _physics_process(delta):
 	if position:
+		
 		tile_pos = tilemap.local_to_map(position)
 		world_pos = tilemap.map_to_local(tile_pos)
 		atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
-		tile_index = atlas_pos.y * 6 + atlas_pos.x
+		tile_index = atlas_pos.y * ROW_SIZE + atlas_pos.x
+		
 		#print(tile_array[tile_index].desc, " facing ", facing)
 
 		#print(tilemap.get_cell_atlas_coords(-1,tile_pos))
@@ -95,19 +126,19 @@ func _physics_process(delta):
 			look()
 
 # Sets sprite and facing variable based on where the character is looking
-func look():
-	if(Input.is_action_just_pressed("Look Left")):
+func look(option = -1):
+	if(Input.is_action_just_pressed("Look Left") || option == DIR.WEST):
 		facing = DIR.WEST
 		$AnimatedSprite2D.frame = 2
 		$AnimatedSprite2D.flip_h = true
-	if(Input.is_action_just_pressed("Look Right")):
+	if(Input.is_action_just_pressed("Look Right") || option == DIR.EAST):
 		facing = DIR.EAST
 		$AnimatedSprite2D.frame = 2
 		$AnimatedSprite2D.flip_h = false
-	if(Input.is_action_just_pressed("Look Up")):
+	if(Input.is_action_just_pressed("Look Up") || option == DIR.NORTH):
 		facing = DIR.NORTH
 		$AnimatedSprite2D.frame = 1
-	if(Input.is_action_just_pressed("Look Down")):
+	if(Input.is_action_just_pressed("Look Down") || option == DIR.SOUTH):
 		facing = DIR.SOUTH
 		$AnimatedSprite2D.frame = 0
 
@@ -118,36 +149,47 @@ func hop():
 		atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
 		var destination_tile
 		var possible_jump : bool = true;
-		if Input.is_action_just_pressed("Move Left") && world_pos.x > MIN_X:
-			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(-1,0))
-			possible_jump = destination_tile != unknown_tile
-			var curr = atlas_to_arr(destination_tile)
-			if curr.exits & 0b0001 && possible_jump:
-				position = tilemap.map_to_local(tile_pos + Vector2i(-1,0))
+		
+		if Input.is_action_just_pressed("Move Left"):
+			look(DIR.WEST)
+			if world_pos.x > MIN_X:
+				destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(-1,0))
+				possible_jump = destination_tile != unknown_tile
+				var curr = atlas_to_arr(destination_tile)
+				if curr.exits & 0b0001 && possible_jump:
+					position = tilemap.map_to_local(tile_pos + Vector2i(-1,0))
 
-		elif Input.is_action_just_pressed("Move Right") && world_pos.x < MAX_X:
-			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(1,0))
-			possible_jump = destination_tile != unknown_tile
-			var curr = atlas_to_arr(destination_tile)
-			if curr.exits & 0b0010 && possible_jump:
-				position = tilemap.map_to_local(tile_pos + Vector2i(1,0))
+		
+		elif Input.is_action_just_pressed("Move Right"):
+			look(DIR.EAST)
+			if world_pos.x < MAX_X:
+				destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(1,0))
+				possible_jump = destination_tile != unknown_tile
+				var curr = atlas_to_arr(destination_tile)
+				if curr.exits & 0b0010 && possible_jump:
+					position = tilemap.map_to_local(tile_pos + Vector2i(1,0))
 
 			
-		if Input.is_action_just_pressed("Move Up") && world_pos.y > MIN_Y:
-			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,-1))
-			possible_jump = destination_tile != unknown_tile
-			var curr = atlas_to_arr(destination_tile)
-			if curr.exits & 0b0100 && possible_jump:
-				position = tilemap.map_to_local(tile_pos + Vector2i(0,-1))
+		elif Input.is_action_just_pressed("Move Up"):
+			look(DIR.NORTH)
+			if world_pos.y > MIN_Y:
+				destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,-1))
+				possible_jump = destination_tile != unknown_tile
+				var curr = atlas_to_arr(destination_tile)
+				if curr.exits & 0b0100 && possible_jump:
+					position = tilemap.map_to_local(tile_pos + Vector2i(0,-1))
 
 
-		elif Input.is_action_just_pressed("Move Down") && world_pos.y < MAX_Y:
-			destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,1))
-			possible_jump = destination_tile != unknown_tile
-			var curr = atlas_to_arr(destination_tile)
-			if curr.exits & 0b1000 && possible_jump:
-				position = tilemap.map_to_local(tile_pos + Vector2i(0,1))
+		elif Input.is_action_just_pressed("Move Down"):
+			look(DIR.SOUTH)
+			if world_pos.y < MAX_Y:
+				destination_tile = tilemap.get_cell_atlas_coords(-1, tile_pos + Vector2i(0,1))
+				possible_jump = destination_tile != unknown_tile
+				var curr = atlas_to_arr(destination_tile)
+				if curr.exits & 0b1000 && possible_jump:
+					position = tilemap.map_to_local(tile_pos + Vector2i(0,1))
 
+				
 # Picture Snapping code
 func picture():
 	tile_pos = tilemap.local_to_map(position)
@@ -171,6 +213,7 @@ func picture():
 	if(dest_atlas != unknown_tile):
 		return
 	# Is this tile outside of the boundaries of the map?
+	# TODO: Change these to consts
 	if(dest_tile.x < 0 or dest_tile.y < 0 or dest_tile.x > 7 or dest_tile.y > 7):
 		return
 	
@@ -216,40 +259,113 @@ func picture():
 	# Grab adjacent tiles
 	# Creating an array of the 8 tiles tile_pos's that surround the destination, we will end up grabbing the tile we are standing on, but that shouldn't
 		# be a problem
+	# After thinking about it, I don't think diagonal tiles matter.
+	# I also think that grabbing the origin tile in this can lead to checking tiles that have already been checked which is inefficient.
+	# That being said, I am going to exclude tiles we do not need and recursively call a fixing method on them... eventually if needed.
+	
+	
+	# Will this mess up a connection between existing tiles?
+	# Should we care? Or is it interesting to the gameplay?
+	# Could call this recursively to parse surrounding tiles until none of the tiles OR'ed have to change at all.
+	
 	var adj = []
 	
 	# Top Left
-	var tl = dest_tile + Vector2i(-1,-1)
-	adj.append(tl)
+	#var tl = dest_tile + Vector2i(-1,-1)
+	#adj.append(tl)
 	
-	# Top
-	var t = dest_tile + Vector2i(0,-1)
-	adj.append(t)
-	
-	# Top Right
-	var tr = dest_tile + Vector2i(1,-1)
-	adj.append(tr)
-	
-	# Middle Left
-	var ml = dest_tile + Vector2i(-1,0)
-	adj.append(ml)
-	
-	# Middle Right
-	var mr = dest_tile + Vector2i(1,0)
-	adj.append(mr)
-	
-	# Bottom Left
-	var bl = dest_tile + Vector2i(-1,1)
-	adj.append(bl)
-	
-	# Bottom
-	var b = dest_tile + Vector2i(0,1)
-	adj.append(b)
-	
-	# Bottom Right
-	var br = dest_tile + Vector2i(1,1)
-	adj.append(br)
-	
+	# North
+	# Grab tile's position
+	var n = dest_tile + Vector2i(0,-1)
+	adj.append(n)
+	# Figure out what kind of tile it is
+	var n_atlas = tilemap.get_cell_atlas_coords(-1,n)
+	# Get its index in the array
+	var n_index = atlas_to_index(n_atlas)
+	# Figure out it's exit configuration
+	if n_index && n_index > 0 && n_index < 16:
+		var n_exits = tile_array[n_index].exits
+		# Block or open the necessary channel
+		# If the tile north of us has a southern opening, we need a northern opening
+		# n ?= 0bx1xx? -> curr = 0bx1xx
+		if n_exits & 0b0100:
+			print("tile to the north of the destination has a southern opening")
+			# OR'ing the exit sets the bit
+			dest_exits |= 0b0100
+		else:
+			print("tile to the north of the destination has a southern wall")
+			print("EXITS BEFORE ", dest_exits) #0100
+			dest_exits &= 0b0111               #0111
+			print("EXITS AFTER ", dest_exits) #0100
+		
+	# West
+	var w = dest_tile + Vector2i(-1,0)
+	adj.append(w)
+	var w_atlas = tilemap.get_cell_atlas_coords(-1,w)
+	# Get its index in the array
+	var w_index = atlas_to_index(w_atlas)
+	# Figure out it's exit configuration
+	if w_index && w_index > 0 && w_index < 16:
+		var w_exits = tile_array[w_index].exits
+		# Block or open the necessary channel
+		# If the tile west of us has a eastern opening, we need a western opening
+		# n ?= 0bxx1x? -> curr = 0bxx1x
+		if w_exits & 0b0001:
+			print("tile to the west of the destination has an eastern opening")
+			# OR'ing the exit sets the bit
+			dest_exits |= 0b0001
+		else:
+			print("tile to the west of the destination has an eastern wall")
+			# CREATE a western wall
+			print("EXITS BEFORE ", dest_exits)
+			dest_exits &= 0b1101
+			print("EXITS AFTER ", dest_exits)
+	# East
+	var e = dest_tile + Vector2i(1,0)
+	adj.append(e)
+	var e_atlas = tilemap.get_cell_atlas_coords(-1,e)
+	# Get its index in the array
+	var e_index = atlas_to_index(e_atlas)
+	# Figure out it's exit configuration
+	if e_index && e_index > 0 && e_index < 16:
+		var e_exits = tile_array[e_index].exits
+		# Block or open the necessary channel
+		# If the tile east of us has a western opening, we need a eastern opening
+		# n ?= 0bxxx1? -> curr = 0bxxx1
+		if e_exits & 0b0010:
+			print("tile to the east of the destination has a western opening")
+			# OR'ing the exit sets the bit
+			dest_exits |= 0b0010
+		else:
+			print("tile to the east of the destination has a western wall")
+			print("EXITS BEFORE ", dest_exits)
+			dest_exits &= 0b1110
+			print("EXITS AFTER ", dest_exits)
+
+		
+	# South
+	var s = dest_tile + Vector2i(0,1)
+	adj.append(s)
+	var s_atlas = tilemap.get_cell_atlas_coords(-1,s)
+	# Get its index in the array
+	var s_index = atlas_to_index(s_atlas)
+	# Figure out it's exit configuration
+	print(s_index)
+	if s_index && s_index > 0 && s_index < 16:
+		var s_exits = tile_array[s_index].exits
+		# Block or open the necessary channel
+		# If the tile south of us has a northern opening, we need a southern opening
+		# n ?= 0bx1xx? -> curr = 0bx1xx
+		if s_exits & 0b1000:
+			print("tile to the south of the destination has a northern opening")
+			# OR'ing the exit sets the bit
+			dest_exits |= 0b1000
+		else:
+			print("tile to the south of the destination has a northern wall")
+			print("EXITS BEFORE ", dest_exits)
+			dest_exits &= 0b1011
+			print("EXITS AFTER ", dest_exits)
+		
 	# Are we on a boundary?
 	for tile in adj:
 		if tile.x < 0:
@@ -264,8 +380,19 @@ func picture():
 		if tile.y > 7:
 			# Block South
 			dest_exits &= 0b1011
-			
-	# Will this mess up a connection between existing tiles?
+	
+	# Grab atlas coords for tile
+		# Atlas coords are found in the tile_obj that is at tile_array[dest.exits]
+	dest_atlas = tile_array[dest_exits].atlas_coords
+	
+	# Use set_tile function I wrote to place tile
+	#print("Placing tile ", tile_array[dest_exits].desc)
+	set_tile(dest_tile,dest_atlas,facing)
+	
+	# Show Picture
+	# Decide the proper picture to show based on the direction facing and the PLACED tile. We would want to be looking at the unique configuration of the 
+		# tile we generated, not the entrance we are standing in leading to it, that wouldn't mesh with the feeling at all.
+		
 	
 # Physics code if we want to push objects.
 func push():

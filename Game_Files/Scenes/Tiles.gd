@@ -1,9 +1,14 @@
 extends Node
 
 class_name T
-var atlasCoords : Vector2i
+var atlas_coords : Vector2i
 var exits : int
 var desc : String
+
+# Number of rows and columns in the tile atlas
+const ROWS : int = 3
+const COLS : int = 6
+
 # I'll change this if the zero offset makes this confusing.
 const TILE_MAX : int = 16
 
@@ -13,11 +18,11 @@ const TILE_MAX : int = 16
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	var exits = 0
-	for i in range(6):
-		for j in range(3):
+	for i in range(ROWS):
+		for j in range(COLS):
 				var curr = T.new()
-				curr.atlasCoords.x = i
-				curr.atlasCoords.y = j
+				curr.atlas_coords.x = j
+				curr.atlas_coords.y = i
 				curr.exits = exits
 				# Binary number corresponds to top, bottom, left, right exits
 				match curr.exits:
@@ -54,6 +59,7 @@ func _ready():
 					0b1111:
 						curr.desc = "Cross Tile"
 				exits+=1
+				#print("Made tile ", curr.desc, " at atlas coords ", curr.atlas_coords)
 				tiles.append(curr)
 				#$".".add_child(curr)
 pass # Replace with function body.
