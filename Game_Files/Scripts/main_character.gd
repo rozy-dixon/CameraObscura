@@ -283,6 +283,7 @@ func picture():
 	# Get its index in the array
 	var n_index = atlas_to_index(n_atlas)
 	# Figure out it's exit configuration
+	print("n_index ", n_index)
 	if n_index && n_index > 0 && n_index < 16:
 		var n_exits = tile_array[n_index].exits
 		# Block or open the necessary channel
@@ -291,7 +292,9 @@ func picture():
 		if n_exits & 0b0100:
 			print("tile to the north of the destination has a southern opening")
 			# OR'ing the exit sets the bit
-			dest_exits |= 0b0100
+			print("EXITS BEFORE ", dest_exits)
+			dest_exits |= 0b1000
+			print("EXITS AFTER ", dest_exits) #0100
 		else:
 			print("tile to the north of the destination has a southern wall")
 			print("EXITS BEFORE ", dest_exits) #0100
@@ -305,6 +308,7 @@ func picture():
 	# Get its index in the array
 	var w_index = atlas_to_index(w_atlas)
 	# Figure out it's exit configuration
+	print("w_index ", w_index)
 	if w_index && w_index > 0 && w_index < 16:
 		var w_exits = tile_array[w_index].exits
 		# Block or open the necessary channel
@@ -313,7 +317,9 @@ func picture():
 		if w_exits & 0b0001:
 			print("tile to the west of the destination has an eastern opening")
 			# OR'ing the exit sets the bit
-			dest_exits |= 0b0001
+			print("EXITS BEFORE ", dest_exits)
+			dest_exits |= 0b0010
+			print("EXITS AFTER ", dest_exits) #0100
 		else:
 			print("tile to the west of the destination has an eastern wall")
 			# CREATE a western wall
@@ -327,6 +333,7 @@ func picture():
 	# Get its index in the array
 	var e_index = atlas_to_index(e_atlas)
 	# Figure out it's exit configuration
+	print("e_index ", e_index)
 	if e_index && e_index > 0 && e_index < 16:
 		var e_exits = tile_array[e_index].exits
 		# Block or open the necessary channel
@@ -335,7 +342,9 @@ func picture():
 		if e_exits & 0b0010:
 			print("tile to the east of the destination has a western opening")
 			# OR'ing the exit sets the bit
-			dest_exits |= 0b0010
+			print("EXITS BEFORE ", dest_exits)
+			dest_exits |= 0b0001
+			print("EXITS AFTER ", dest_exits) #0100
 		else:
 			print("tile to the east of the destination has a western wall")
 			print("EXITS BEFORE ", dest_exits)
@@ -350,7 +359,8 @@ func picture():
 	# Get its index in the array
 	var s_index = atlas_to_index(s_atlas)
 	# Figure out it's exit configuration
-	print(s_index)
+	print("s_index ", s_index)
+	#print(s_index)
 	if s_index && s_index > 0 && s_index < 16:
 		var s_exits = tile_array[s_index].exits
 		# Block or open the necessary channel
@@ -359,13 +369,17 @@ func picture():
 		if s_exits & 0b1000:
 			print("tile to the south of the destination has a northern opening")
 			# OR'ing the exit sets the bit
-			dest_exits |= 0b1000
+			print("EXITS BEFORE ", dest_exits)
+			dest_exits |= 0b0100
+			print("EXITS AFTER ", dest_exits) #0100
 		else:
 			print("tile to the south of the destination has a northern wall")
 			print("EXITS BEFORE ", dest_exits)
 			dest_exits &= 0b1011
 			print("EXITS AFTER ", dest_exits)
-		
+	
+	print("exit config after neighbor filter ", dest_exits)
+	print("")
 	# Are we on a boundary?
 	for tile in adj:
 		if tile.x < 0:
