@@ -7,7 +7,7 @@ extends CharacterBody2D
 @export var jumpy_movement = true;
 
 # Handles direction of character
-enum DIR{NORTH, SOUTH, WEST, EAST}
+enum DIR{NORTH = 8, SOUTH = 4, WEST = 2, EAST = 1}
 @export var facing : int = DIR.SOUTH
 
 # The boundaries of the screen, in the bounds of the tileset.
@@ -39,6 +39,10 @@ var tile_obj
 # Keep track of what defines a Tile that is not actually placed
 var unknown_tile = Vector2i(-1,-1)
 
+# The amount of range our camera can go
+var pic_dist : int = 2
+
+# Given an atlas coord, find what index it is in the array
 func atlas_to_index(atlas):
 	# Apply a conversion of the components of the atlas Vector2i to return an integer of it's corresponding tile in the array
 	var row = atlas.y
@@ -50,7 +54,6 @@ func atlas_to_index(atlas):
 func to_binary(num):
 	var retval = ""
 	var digit : String
-	#print("Converting ", num, " to binary")
 	while num:
 		digit = str(num % 2)
 		num /= 2
@@ -59,57 +62,47 @@ func to_binary(num):
 	# Pad if needed
 	while retval.length() < 4:
 		retval = "0" + retval
-	#print("Result is: ", retval)
 	return retval
 
 # Takes in atlas coords, returns tile object.
 func atlas_to_arr(destination_tile):
-	#print(destination_tile)
-	var t = destination_tile.y * ROW_SIZE + destination_tile.x
-	var dest_tile_obj = tile_array[t]
-	return dest_tile_obj
 	
-	# Function places a tile, using tile_pos as the origin
-	#use Vector2i.(xxx) for direction
+	var dest_tile_obj = tile_array[atlas_to_index(destination_tile)]
+	return dest_tile_obj
+
+
+# Function places a tile, using tile_pos as the origin
+#use Vector2i.(xxx) for direction
 func set_tile(tile_pos, atlas_pos, direction):
-	#print("Setting tile at position ", tile_pos, " from the atlas coordinate ", atlas_pos, " with the direction of ", direction)
+	# Layer is at 0
 	var tilemap_layer = 0
+	# Checking to see if it is an empty space, going to change this for "place_tile()"
 	var tile_data = tilemap.get_cell_tile_data(tilemap_layer, tile_pos)
+	# If there is an empty space
 	if !tile_data: 
-		# This was pulling data from the null tile
-		#var tilemap_cell_source_id = tilemap.get_cell_source_id(tilemap_layer, tile_pos); 
-		#var tilemap_cell_alternative = tilemap.get_cell_alternative_tile(tilemap_layer, tile_pos) 
+		# These default to 0 as well
 		var tilemap_cell_source_id = 0
 		var tilemap_cell_alternative = 0
 		tilemap.set_cell(tilemap_layer, tile_pos, tilemap_cell_source_id, atlas_pos, tilemap_cell_alternative)
-		#print("Set cell on layer ", tilemap_layer, " with position ", tile_pos, " with the cell source id of ", tilemap_cell_source_id, " the atlas coords of ", atlas_pos, " and the cell alternative of ", tilemap_cell_alternative)
 
 func _ready():
+	# Pull the objects from the class into variables in this script
 	tile_array = $"../Tiles".tiles
 	tilemap = $"../TileMap" 
+	# Start facing south
 	facing = DIR.SOUTH
+	# Start at the origin
 	position = tilemap.map_to_local(Vector2(0,0))
-	#var tilemap_layer = 0 
-	#var tilemap_cell_position = Vector2i(0,0) 
-	#var tile_data = tilemap.get_cell_tile_data(tilemap_layer, tilemap_cell_position)
-	#if tile_data: 
-		#var tilemap_cell_source_id = tilemap.get_cell_source_id(tilemap_layer, tilemap_cell_position); 
-		#var tilemap_cell_atlas_coords = tilemap.get_cell_atlas_coords(tilemap_layer, tilemap_cell_position) 
-		#var tilemap_cell_alternative = tilemap.get_cell_alternative_tile(tilemap_layer, tilemap_cell_position) 
-		#var new_tilemap_cell_position = tilemap_cell_position + Vector2i.RIGHT 
-		#tilemap.set_cell(tilemap_layer, new_tilemap_cell_position, tilemap_cell_source_id, tilemap_cell_atlas_coords, tilemap_cell_alternative)
-		#print("Set cell on layer ", tilemap_layer, " with position ", new_tilemap_cell_position, " with the cell source id of ", tilemap_cell_source_id, " the atlas coords of ", tilemap_cell_atlas_coords, " and the cell alternative of ", tilemap_cell_alternative)
+
 func _physics_process(delta):
 	if position:
-		
+		# Grab and set our tile coords, world coords, atlas coords, index in the array, and what tile in the array that we are standing on
 		tile_pos = tilemap.local_to_map(position)
 		world_pos = tilemap.map_to_local(tile_pos)
 		atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
 		tile_index = atlas_pos.y * ROW_SIZE + atlas_pos.x
-		
-		#print(tile_array[tile_index].desc, " facing ", facing)
+		tile_obj = tile_array[tile_index]
 
-		#print(tilemap.get_cell_atlas_coords(-1,tile_pos))
 		# Process character movement input
 		if(Input.is_action_just_pressed("Take Picture")) && $"../Photo".visible == false:
 			picture()
@@ -144,9 +137,6 @@ func look(option = -1):
 
 # Hopping movement code
 func hop():
-		tile_pos = tilemap.local_to_map(position)
-		world_pos = tilemap.map_to_local(tile_pos)
-		atlas_pos = tilemap.get_cell_atlas_coords(-1,tile_pos)
 		var destination_tile
 		var possible_jump : bool = true;
 		
@@ -158,7 +148,6 @@ func hop():
 				var curr = atlas_to_arr(destination_tile)
 				if curr.exits & 0b0001 && possible_jump:
 					position = tilemap.map_to_local(tile_pos + Vector2i(-1,0))
-
 		
 		elif Input.is_action_just_pressed("Move Right"):
 			look(DIR.EAST)
@@ -168,7 +157,6 @@ func hop():
 				var curr = atlas_to_arr(destination_tile)
 				if curr.exits & 0b0010 && possible_jump:
 					position = tilemap.map_to_local(tile_pos + Vector2i(1,0))
-
 			
 		elif Input.is_action_just_pressed("Move Up"):
 			look(DIR.NORTH)
@@ -178,7 +166,6 @@ func hop():
 				var curr = atlas_to_arr(destination_tile)
 				if curr.exits & 0b0100 && possible_jump:
 					position = tilemap.map_to_local(tile_pos + Vector2i(0,-1))
-
 
 		elif Input.is_action_just_pressed("Move Down"):
 			look(DIR.SOUTH)
@@ -191,11 +178,8 @@ func hop():
 
 				
 # Picture Snapping code
-func picture():
-	tile_pos = tilemap.local_to_map(position)
-	tile_obj = tile_array[tile_index]
-	
-	# dest_tile = tile position on the game screen
+func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
+	# Create a variable for the tile coords of the tile we are going to generate
 	var dest_tile : Vector2i
 	dest_tile = tile_pos
 	match facing:
@@ -402,10 +386,30 @@ func picture():
 	# Use set_tile function I wrote to place tile
 	#print("Placing tile ", tile_array[dest_exits].desc)
 	set_tile(dest_tile,dest_atlas,facing)
-	
+	print ("pic_dist = ", pic_dist)
+	# If there is an opening, keep placing tiles
+	if(pic_dist != 0):
+		match facing:
+			DIR.NORTH:
+				# if we are facing north and just generated a tile with a northern entrance, generate again
+				if dest_exits & 0b1000:
+					picture(dest_tile, facing, pic_dist - 1)
+			DIR.SOUTH:
+				if dest_exits & 0b0100:
+					picture(dest_tile, facing, pic_dist - 1)
+			DIR.WEST:
+				if dest_exits & 0b0010:
+					picture(dest_tile, facing, pic_dist - 1)
+			DIR.EAST:
+				if dest_exits & 0b0001:
+					picture(dest_tile, facing, pic_dist - 1)
+					
+	else:
+		pic_dist = 2
 	# Show Picture
 	# Decide the proper picture to show based on the direction facing and the PLACED tile. We would want to be looking at the unique configuration of the 
 		# tile we generated, not the entrance we are standing in leading to it, that wouldn't mesh with the feeling at all.
+	# This is going to attempt to show the picture multiple times
 		
 	
 # Physics code if we want to push objects.
