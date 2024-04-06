@@ -10,11 +10,15 @@ extends CharacterBody2D
 enum DIR{NORTH = 8, SOUTH = 4, WEST = 2, EAST = 1}
 @export var facing : int = DIR.SOUTH
 
-# The boundaries of the screen, in the bounds of the tileset.
+# The boundaries of the screen in world coordinates, in the bounds of the tileset.
 const MAX_X : int = 300
 const MAX_Y : int = 270
 const MIN_X : int = 20
 const MIN_Y : int = 18
+
+# The boundaries of the screen in tile coordinates
+const MIN_TILE : Vector2i = Vector2i(0,0)
+const MAX_TILE : Vector2i = Vector2i(7,7)
 
 # Size of the rows in our tileset, used to index the array because it is converting 2D to 1D
 const ROW_SIZE : int = 6
@@ -191,30 +195,20 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 			dest_tile += Vector2i(-1,0)
 		DIR.EAST:
 			dest_tile += Vector2i(1,0)
+	
 	# Has this tile already been generated?
 	# dest_atlas = atlas coordinates of the destination
 	var dest_atlas = tilemap.get_cell_atlas_coords(-1,dest_tile) 
 	if(dest_atlas != unknown_tile):
 		return
+	
 	# Is this tile outside of the boundaries of the map?
-	# TODO: Change these to consts
-	if(dest_tile.x < 0 or dest_tile.y < 0 or dest_tile.x > 7 or dest_tile.y > 7):
+	if(dest_tile < MIN_TILE or dest_tile > MAX_TILE):
 		return
 	
 	# Are we facing an open exit?
-	match facing:
-		DIR.NORTH:
-			if(tile_obj.exits & 0b1000 == 0):
-				return
-		DIR.SOUTH:
-			if(tile_obj.exits & 0b0100 == 0):
-				return
-		DIR.WEST:
-			if(tile_obj.exits & 0b0010 == 0):
-				return
-		DIR.EAST:
-			if(tile_obj.exits & 0b0001 == 0):
-				return
+	if(tile_obj.exits & facing == 0):
+		return
 	
 	# Create random number for exits
 	# dest_exits is the exits to be generated for the destination tile
@@ -237,9 +231,7 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 		DIR.EAST:
 			# Facing East, we want something with a Western exit.
 			dest_exits |= 0b0010
-	bin_exits = to_binary(dest_exits)
-	#print("After Conversion: ", bin_exits) 
-	
+
 	# Grab adjacent tiles
 	# Creating an array of the 8 tiles tile_pos's that surround the destination, we will end up grabbing the tile we are standing on, but that shouldn't
 		# be a problem
@@ -252,12 +244,9 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 	# Should we care? Or is it interesting to the gameplay?
 	# Could call this recursively to parse surrounding tiles until none of the tiles OR'ed have to change at all.
 	
+	# Array of destination's neighbors
 	var adj = []
-	
-	# Top Left
-	#var tl = dest_tile + Vector2i(-1,-1)
-	#adj.append(tl)
-	
+		
 	# North
 	# Grab tile's position
 	var n = dest_tile + Vector2i(0,-1)
@@ -273,16 +262,16 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 		# Block or open the necessary channel
 		# If the tile north of us has a southern opening, we need a northern opening
 		# n ?= 0bx1xx? -> curr = 0bx1xx
-		if n_exits & 0b0100:
+		if n_exits & DIR.SOUTH:
 			print("tile to the north of the destination has a southern opening")
 			# OR'ing the exit sets the bit
 			print("EXITS BEFORE ", dest_exits)
-			dest_exits |= 0b1000
+			dest_exits |= DIR.NORTH
 			print("EXITS AFTER ", dest_exits) #0100
 		else:
 			print("tile to the north of the destination has a southern wall")
 			print("EXITS BEFORE ", dest_exits) #0100
-			dest_exits &= 0b0111               #0111
+			dest_exits &= ~DIR.NORTH           #0111
 			print("EXITS AFTER ", dest_exits) #0100
 		
 	# West
@@ -298,17 +287,17 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 		# Block or open the necessary channel
 		# If the tile west of us has a eastern opening, we need a western opening
 		# n ?= 0bxx1x? -> curr = 0bxx1x
-		if w_exits & 0b0001:
+		if w_exits & DIR.EAST:
 			print("tile to the west of the destination has an eastern opening")
 			# OR'ing the exit sets the bit
 			print("EXITS BEFORE ", dest_exits)
-			dest_exits |= 0b0010
+			dest_exits |= DIR.WEST
 			print("EXITS AFTER ", dest_exits) #0100
 		else:
 			print("tile to the west of the destination has an eastern wall")
 			# CREATE a western wall
 			print("EXITS BEFORE ", dest_exits)
-			dest_exits &= 0b1101
+			dest_exits &= ~DIR.WEST
 			print("EXITS AFTER ", dest_exits)
 	# East
 	var e = dest_tile + Vector2i(1,0)
@@ -323,16 +312,16 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 		# Block or open the necessary channel
 		# If the tile east of us has a western opening, we need a eastern opening
 		# n ?= 0bxxx1? -> curr = 0bxxx1
-		if e_exits & 0b0010:
+		if e_exits & DIR.WEST:
 			print("tile to the east of the destination has a western opening")
 			# OR'ing the exit sets the bit
 			print("EXITS BEFORE ", dest_exits)
-			dest_exits |= 0b0001
+			dest_exits |= DIR.EAST
 			print("EXITS AFTER ", dest_exits) #0100
 		else:
 			print("tile to the east of the destination has a western wall")
 			print("EXITS BEFORE ", dest_exits)
-			dest_exits &= 0b1110
+			dest_exits &= ~DIR.EAST
 			print("EXITS AFTER ", dest_exits)
 
 		
@@ -350,16 +339,16 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 		# Block or open the necessary channel
 		# If the tile south of us has a northern opening, we need a southern opening
 		# n ?= 0bx1xx? -> curr = 0bx1xx
-		if s_exits & 0b1000:
+		if s_exits & DIR.NORTH:
 			print("tile to the south of the destination has a northern opening")
 			# OR'ing the exit sets the bit
 			print("EXITS BEFORE ", dest_exits)
-			dest_exits |= 0b0100
+			dest_exits |= DIR.SOUTH
 			print("EXITS AFTER ", dest_exits) #0100
 		else:
 			print("tile to the south of the destination has a northern wall")
 			print("EXITS BEFORE ", dest_exits)
-			dest_exits &= 0b1011
+			dest_exits &= ~DIR.SOUTH
 			print("EXITS AFTER ", dest_exits)
 	
 	print("exit config after neighbor filter ", dest_exits)
@@ -368,7 +357,7 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 	for tile in adj:
 		if tile.x < 0:
 			# We need to block the exit in the destination at the West side
-			dest_exits &= 0b1101
+			dest_exits &= ~DIR.WEST
 		if tile.x > 7:
 			# Block East side
 			dest_exits &= 0b1110
