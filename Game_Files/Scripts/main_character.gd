@@ -1,12 +1,17 @@
 extends CharacterBody2D
 
+### EXPORTED VARIABLES ###
+
 # Put character's movement attributes in the inspector so they can be modified
 @export var push_force  = 1000
 @export var walk_speed  = 40.0
 @export var diagonal_movement = false;
 @export var jumpy_movement = true;
 
+### CONSTANTS ###
+
 # Handles direction of character
+# Powers of 2 to work with bitwise operations
 enum DIR{NORTH = 8, SOUTH = 4, WEST = 2, EAST = 1}
 @export var facing : int = DIR.SOUTH
 
@@ -23,10 +28,14 @@ const MAX_TILE : Vector2i = Vector2i(7,7)
 # Size of the rows in our tileset, used to index the array because it is converting 2D to 1D
 const ROW_SIZE : int = 6
 
+### TILEMAP DATA ###
+
 # The tilemap in the main scene
 var tilemap : TileMap
 # Array of Tile Objects that have exit properties
 var tile_array 
+
+### CHARACTER DATA ###
 
 # The position on the screen in terms of Tiles
 var tile_pos
@@ -39,12 +48,15 @@ var tile_index : int
 # The Tile object we are standing on
 var tile_obj
 
+### MISC VARIABLES
 
 # Keep track of what defines a Tile that is not actually placed
 var unknown_tile = Vector2i(-1,-1)
 
 # The amount of range our camera can go
 var pic_dist : int = 2
+
+### HELPER FUNCTIONS ###
 
 # Given an atlas coord, find what index it is in the array
 func atlas_to_index(atlas):
@@ -180,7 +192,6 @@ func hop():
 				if curr.exits & 0b1000 && possible_jump:
 					position = tilemap.map_to_local(tile_pos + Vector2i(0,1))
 
-				
 # Picture Snapping code
 func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 	# Create a variable for the tile coords of the tile we are going to generate
@@ -360,23 +371,22 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 			dest_exits &= ~DIR.WEST
 		if tile.x > 7:
 			# Block East side
-			dest_exits &= 0b1110
+			dest_exits &= ~DIR.EAST
 		if tile.y < 0:
 			# Block North
-			dest_exits &= 0b0111
+			dest_exits &= ~DIR.NORTH
 		if tile.y > 7:
 			# Block South
-			dest_exits &= 0b1011
+			dest_exits &= ~DIR.SOUTH
 	
 	# Grab atlas coords for tile
 		# Atlas coords are found in the tile_obj that is at tile_array[dest.exits]
 	dest_atlas = tile_array[dest_exits].atlas_coords
 	
 	# Use set_tile function I wrote to place tile
-	#print("Placing tile ", tile_array[dest_exits].desc)
 	set_tile(dest_tile,dest_atlas,facing)
-	print ("pic_dist = ", pic_dist)
-	# If there is an opening, keep placing tiles
+	
+	# If there is an opening, keep placing tiles, up to 3, pic_dist = #of additional tiles created
 	if(pic_dist != 0):
 		match facing:
 			DIR.NORTH:
@@ -399,8 +409,7 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 	# Decide the proper picture to show based on the direction facing and the PLACED tile. We would want to be looking at the unique configuration of the 
 		# tile we generated, not the entrance we are standing in leading to it, that wouldn't mesh with the feeling at all.
 	# This is going to attempt to show the picture multiple times
-		
-	
+
 # Physics code if we want to push objects.
 func push():
 	# If we are moving
@@ -418,7 +427,6 @@ func push():
 func movement_input():
 	# Store the input from the arrow keys into a 2D vector, Ex: (+/-x, +/-y), (1,0) = left, (-1,0) = right, (0,1) = up, (0,-1) = down, (+/-0.70707..., +/-0.70707...) = diagonal, (0,0) = idle
 	var direction = Input.get_vector("Move Left", "Move Right", "Move Up", "Move Down")
-	#print(direction)
 	# If we are not idle
 	
 	if(direction):
