@@ -48,7 +48,13 @@ var tile_index : int
 # The Tile object we are standing on
 var tile_obj
 
-### MISC VARIABLES
+### POCKET STUFF ###
+
+#Holds tiles for pocket function
+var inventory = []
+var pocket_size : int = 3
+
+### MISC VARIABLES ###
 
 # Keep track of what defines a Tile that is not actually placed
 var unknown_tile = Vector2i(-1,-1)
@@ -89,17 +95,19 @@ func atlas_to_arr(destination_tile):
 
 # Function places a tile, using tile_pos as the origin
 #use Vector2i.(xxx) for direction
-func set_tile(tile_pos, atlas_pos, direction):
+func set_tile(tile_pos, atlas_pos, direction, force = false):
 	# Layer is at 0
 	var tilemap_layer = 0
 	# Checking to see if it is an empty space, going to change this for "place_tile()"
 	var tile_data = tilemap.get_cell_tile_data(tilemap_layer, tile_pos)
 	# If there is an empty space
-	if !tile_data: 
+	if !tile_data || force: 
 		# These default to 0 as well
 		var tilemap_cell_source_id = 0
 		var tilemap_cell_alternative = 0
 		tilemap.set_cell(tilemap_layer, tile_pos, tilemap_cell_source_id, atlas_pos, tilemap_cell_alternative)
+
+### FUNCTION DEFAULTS ###
 
 func _ready():
 	# Pull the objects from the class into variables in this script
@@ -124,6 +132,11 @@ func _physics_process(delta):
 			picture()
 		elif Input.is_action_just_pressed("Take Picture") && $"../Photo".visible == true:
 			$"../Photo".visible = false
+		if(Input.is_action_just_pressed("Pocket")):
+			pocket()
+		if(Input.is_action_just_pressed("Depocket")):
+			depocket()
+		
 		if(!jumpy_movement):
 			movement_input()
 			# Push a RigidBody2D node if we are colliding with one
@@ -134,6 +147,7 @@ func _physics_process(delta):
 			hop()
 			look()
 
+### PLAYER ACTIONS ###
 # Sets sprite and facing variable based on where the character is looking
 func look(option = -1):
 	if(Input.is_action_just_pressed("Look Left") || option == DIR.WEST):
@@ -199,13 +213,13 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 	dest_tile = tile_pos
 	match facing:
 		DIR.NORTH:
-			dest_tile += Vector2i(0,-1)
+			dest_tile += Vector2i.UP
 		DIR.SOUTH:
-			dest_tile += Vector2i(0,1)
+			dest_tile += Vector2i.DOWN
 		DIR.WEST:
-			dest_tile += Vector2i(-1,0)
+			dest_tile += Vector2i.LEFT
 		DIR.EAST:
-			dest_tile += Vector2i(1,0)
+			dest_tile += Vector2i.RIGHT
 	
 	# Has this tile already been generated?
 	# dest_atlas = atlas coordinates of the destination
@@ -409,6 +423,57 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 	# Decide the proper picture to show based on the direction facing and the PLACED tile. We would want to be looking at the unique configuration of the 
 		# tile we generated, not the entrance we are standing in leading to it, that wouldn't mesh with the feeling at all.
 	# This is going to attempt to show the picture multiple times
+
+func pocket():
+	print("Using Pocket")
+	if inventory.size() < 3:
+		# Isolate tile to grab
+		var dest_tile : Vector2i = tile_pos;
+		match facing:
+			DIR.NORTH:
+				dest_tile += Vector2i.UP
+			DIR.SOUTH:
+				dest_tile += Vector2i.DOWN
+			DIR.WEST:
+				dest_tile += Vector2i.LEFT
+			DIR.EAST:
+				dest_tile += Vector2i.RIGHT
+			
+		var dest_atlas = tilemap.get_cell_atlas_coords(-1,dest_tile) 
+		if(dest_atlas == unknown_tile):
+			return
+		var dest_obj = atlas_to_arr(dest_atlas)
+		
+		tilemap.erase_cell(-1,dest_tile)
+		inventory.append(dest_obj.exits)
+		print(inventory)
+	
+func depocket():
+	# Need to bounds check to not place outside world 
+	# Grab Tile data
+	if inventory.size() > 0:
+		print("Depocketing")
+		var dest_tile : Vector2i = tile_pos;
+		match facing:
+			DIR.NORTH:
+				dest_tile += Vector2i.UP
+			DIR.SOUTH:
+				dest_tile += Vector2i.DOWN
+			DIR.WEST:
+				dest_tile += Vector2i.LEFT
+			DIR.EAST:
+				dest_tile += Vector2i.RIGHT
+			
+		#var dest_atlas = tilemap.get_cell_atlas_coords(-1,dest_tile) 
+		var dest_obj = tile_array[inventory.back()]
+		
+		# Make this into a variable
+		print("dest_tile ", dest_tile, " dest_atlas ", dest_obj.atlas_coords, " facing ", facing)
+		set_tile(dest_tile, dest_obj.atlas_coords,facing, 1)
+		inventory.pop_back()
+		print(inventory)
+		
+### OPTIONAL PHYSICS BASED MOVEMENT ###
 
 # Physics code if we want to push objects.
 func push():

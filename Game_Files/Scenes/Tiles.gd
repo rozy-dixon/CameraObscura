@@ -61,11 +61,8 @@ func _ready():
 				exits+=1
 				#print("Made tile ", curr.desc, " at atlas coords ", curr.atlas_coords)
 				tiles.append(curr)
-				#$".".add_child(curr)
-pass # Replace with function body.
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	#print(tiles.size())
 	pass
