@@ -101,7 +101,7 @@ func set_tile(tile_pos, atlas_pos, direction, force = false):
 	# Checking to see if it is an empty space, going to change this for "place_tile()"
 	var tile_data = tilemap.get_cell_tile_data(tilemap_layer, tile_pos)
 	# If there is an empty space
-	if !tile_data || force: 
+	if !tile_data: 
 		# These default to 0 as well
 		var tilemap_cell_source_id = 0
 		var tilemap_cell_alternative = 0

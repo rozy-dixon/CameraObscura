@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://chx1hqcjahtsw"]
+[gd_scene load_steps=11 format=3 uid="uid://chx1hqcjahtsw"]
 
 [ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_2j0ki"]
 [ext_resource type="Script" path="res://Scripts/starting_level.gd" id="1_6muxn"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bm30q8mdyqi4e" path="res://Scenes/BaseBetaTileset.tscn" id="5_ucaeq"]
 [ext_resource type="Script" path="res://Scenes/Tiles.gd" id="7_46teb"]
 [ext_resource type="PackedScene" uid="uid://c2c50xtgaqi0p" path="res://Scenes/photo.tscn" id="7_lismb"]
+[ext_resource type="PackedScene" uid="uid://cl177q1qy1aes" path="res://Scenes/mini_tilemap.tscn" id="8_5tdtj"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lssf5"]
 shader = ExtResource("1_2j0ki")
@@ -54,3 +55,5 @@ script = ExtResource("7_46teb")
 [node name="Photo" parent="." instance=ExtResource("7_lismb")]
 visible = false
 position = Vector2(150, 144)
+
+[node name="Mini Tilemap" parent="." instance=ExtResource("8_5tdtj")]
