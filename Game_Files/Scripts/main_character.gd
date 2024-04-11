@@ -1,5 +1,6 @@
 extends CharacterBody2D
 
+
 ### EXPORTED VARIABLES ###
 
 # Put character's movement attributes in the inspector so they can be modified
@@ -447,6 +448,8 @@ func pocket():
 		tilemap.erase_cell(-1,dest_tile)
 		inventory.append(dest_obj.exits)
 		print(inventory)
+		
+		
 	
 func depocket():
 	# Need to bounds check to not place outside world 
