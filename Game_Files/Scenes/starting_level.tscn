@@ -64,10 +64,10 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UI"]
-custom_minimum_size = Vector2(10, 9)
+custom_minimum_size = Vector2(50, 45)
 layout_mode = 0
-offset_left = 140.0
-offset_top = 245.0
-offset_right = 180.0
-offset_bottom = 285.0
+offset_left = 107.0
+offset_top = 234.0
+offset_right = 157.0
+offset_bottom = 279.0
 alignment = 1

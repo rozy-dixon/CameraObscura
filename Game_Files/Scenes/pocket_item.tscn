@@ -74,11 +74,12 @@ animations = [{
 }]
 
 [node name="Container" type="CenterContainer"]
-custom_minimum_size = Vector2(10, 9)
+custom_minimum_size = Vector2(50, 45)
 offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Tile" type="AnimatedSprite2D" parent="."]
+scale = Vector2(5, 5)
 sprite_frames = SubResource("SpriteFrames_d5xhd")
 frame = 15
 frame_progress = 0.712953
