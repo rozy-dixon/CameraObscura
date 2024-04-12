@@ -1,12 +1,14 @@
-[gd_scene load_steps=10 format=3 uid="uid://chx1hqcjahtsw"]
+[gd_scene load_steps=12 format=3 uid="uid://chx1hqcjahtsw"]
 
 [ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_2j0ki"]
 [ext_resource type="Script" path="res://Scripts/starting_level.gd" id="1_6muxn"]
 [ext_resource type="Texture2D" uid="uid://be3703as1ofka" path="res://Sprites/size_sketch.png" id="2_jqngr"]
+[ext_resource type="Texture2D" uid="uid://byt8m78uynbws" path="res://Sprites/temp_bg.png" id="3_t04ne"]
 [ext_resource type="PackedScene" uid="uid://320a014lbnri" path="res://Scenes/main_character.tscn" id="4_6pbh5"]
 [ext_resource type="PackedScene" uid="uid://bm30q8mdyqi4e" path="res://Scenes/BaseBetaTileset.tscn" id="5_ucaeq"]
 [ext_resource type="Script" path="res://Scenes/Tiles.gd" id="7_46teb"]
 [ext_resource type="PackedScene" uid="uid://c2c50xtgaqi0p" path="res://Scenes/photo.tscn" id="7_lismb"]
+[ext_resource type="Texture2D" uid="uid://3uj05urv1sxy" path="res://Sprites/hud_test.png" id="8_vpl4s"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lssf5"]
 shader = ExtResource("1_2j0ki")
@@ -48,12 +50,22 @@ position = Vector2(20, 17)
 layer_0/tile_data = PackedInt32Array(0, 65536, 1)
 script = SubResource("GDScript_ckxuf")
 
+[node name="Sprite2D2" type="Sprite2D" parent="TileMap"]
+show_behind_parent = true
+z_index = -570
+position = Vector2(160, 108)
+texture = ExtResource("3_t04ne")
+
 [node name="Tiles" type="Node" parent="."]
 script = ExtResource("7_46teb")
 
 [node name="Photo" parent="." instance=ExtResource("7_lismb")]
 visible = false
 position = Vector2(150, 144)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(160, 252)
+texture = ExtResource("8_vpl4s")
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -65,9 +77,14 @@ grow_vertical = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UI"]
 custom_minimum_size = Vector2(50, 45)
-layout_mode = 0
-offset_left = 107.0
-offset_top = 234.0
-offset_right = 157.0
-offset_bottom = 279.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 157.0
+offset_top = 253.0
+offset_right = 207.0
+offset_bottom = 298.0
+grow_horizontal = 2
+grow_vertical = 2
 alignment = 1

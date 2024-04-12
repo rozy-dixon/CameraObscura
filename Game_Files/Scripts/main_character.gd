@@ -18,13 +18,15 @@ enum DIR{NORTH = 8, SOUTH = 4, WEST = 2, EAST = 1}
 
 # The boundaries of the screen in world coordinates, in the bounds of the tileset.
 const MAX_X : int = 300
-const MAX_Y : int = 270
+# 270 - 48 for hud
+const MAX_Y : int = 222
 const MIN_X : int = 20
 const MIN_Y : int = 18
 
 # The boundaries of the screen in tile coordinates
-const MIN_TILE : Vector2i = Vector2i(0,0)
-const MAX_TILE : Vector2i = Vector2i(7,7)
+const MIN_TILE : Vector2i = Vector2i(-1,-1)
+# Y - 1 for HUD
+const MAX_TILE : Vector2i = Vector2i(8,6)
 
 # Size of the rows in our tileset, used to index the array because it is converting 2D to 1D
 const ROW_SIZE : int = 6
@@ -97,6 +99,10 @@ func atlas_to_arr(destination_tile):
 # Function places a tile, using tile_pos as the origin
 #use Vector2i.(xxx) for direction
 func set_tile(tile_pos, atlas_pos, direction, force = false):
+	if(tile_pos.x <= MIN_TILE.x or tile_pos.y <= MIN_TILE.y or tile_pos.x >= MAX_TILE.x or tile_pos.y >= MAX_TILE.y):
+		return
+	#if(tile_pos <= MIN_TILE):
+		#return
 	# Layer is at 0
 	var tilemap_layer = 0
 	# Checking to see if it is an empty space, going to change this for "place_tile()"
@@ -229,7 +235,7 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 		return
 	
 	# Is this tile outside of the boundaries of the map?
-	if(dest_tile < MIN_TILE or dest_tile > MAX_TILE):
+	if(dest_tile.x <= MIN_TILE.x or dest_tile.y <= MIN_TILE.y or dest_tile.x >= MAX_TILE.x or dest_tile.y >= MAX_TILE.y):
 		return
 	
 	# Are we facing an open exit?
@@ -381,16 +387,16 @@ func picture(tile_pos = tile_pos, facing = facing, pic_dist = 2):
 	print("")
 	# Are we on a boundary?
 	for tile in adj:
-		if tile.x < 0:
+		if tile.x <= MIN_TILE.x:
 			# We need to block the exit in the destination at the West side
 			dest_exits &= ~DIR.WEST
-		if tile.x > 7:
+		if tile.x >= MAX_TILE.x:
 			# Block East side
 			dest_exits &= ~DIR.EAST
-		if tile.y < 0:
+		if tile.y <= MIN_TILE.y:
 			# Block North
 			dest_exits &= ~DIR.NORTH
-		if tile.y > 7:
+		if tile.y >= MAX_TILE.y:
 			# Block South
 			dest_exits &= ~DIR.SOUTH
 	
@@ -471,6 +477,8 @@ func depocket():
 		var dest_obj = tile_array[inventory.back()]
 		
 		# Make this into a variable
+		# TODO: DONT ALLOW PLACING OUTSIDE MAP
+		
 		print("dest_tile ", dest_tile, " dest_atlas ", dest_obj.atlas_coords, " facing ", facing)
 		set_tile(dest_tile, dest_obj.atlas_coords,facing, 1)
 		inventory.pop_back()
